@@ -5,11 +5,12 @@ const tmdbService = require('../services/tmdbService');
 // 1. GET /api/catalog/categories - Modular live categories from TMDB
 router.get('/categories', async (req, res) => {
   try {
-    const [latest, trending, action, scifi] = await Promise.all([
-      tmdbService.getLatestReleases(),
-      tmdbService.getTrending(),
-      tmdbService.getMoviesByGenre(28, 'Action'),
-      tmdbService.getMoviesByGenre(878, 'Sci-Fi')
+    const [latest, trending, trendingTv, action, scifi] = await Promise.all([
+      tmdbService.getLatestReleases().catch(() => []),
+      tmdbService.getTrending().catch(() => []),
+      tmdbService.getTrendingTv().catch(() => []),
+      tmdbService.getMoviesByGenre(28, 'Action').catch(() => []),
+      tmdbService.getMoviesByGenre(878, 'Sci-Fi').catch(() => [])
     ]);
 
     res.json({
@@ -25,6 +26,11 @@ router.get('/categories', async (req, res) => {
           title: '🏆 Top 10 Movies in India Today',
           isRanked: true,
           movies: trending.slice(0, 10)
+        },
+        {
+          id: 'tvseries',
+          title: '📺 Binge-Worthy TV & Web Series',
+          movies: trendingTv.slice(0, 12)
         },
         {
           id: 'action',
@@ -53,7 +59,9 @@ router.get('/movie/:id', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Movie not found' });
     }
 
-    const imdbId = details.imdbId || (String(id).startsWith('tt') ? id : `tt${id}`);
+    const imdbId = details.imdbId || (String(id).startsWith('tt') ? id : null);
+    const tmdbId = details.tmdbId || id;
+    const streamTarget = imdbId || tmdbId;
 
     // Download Mirrors
     const downloadOptions = [
@@ -61,21 +69,21 @@ router.get('/movie/:id', async (req, res) => {
         quality: '1080p Full HD (Web-DL)',
         size: '2.4 GB',
         format: 'MP4 / H.264',
-        url: `https://player.autoembed.co/embed/movie/${imdbId}`,
+        url: `https://player.autoembed.co/embed/movie/${streamTarget}`,
         type: 'stream'
       },
       {
         quality: '720p HD (Compressed)',
         size: '1.1 GB',
         format: 'MP4 / AAC',
-        url: `https://vidsrc.to/embed/movie/${imdbId}`,
+        url: `https://vidsrc.to/embed/movie/${streamTarget}`,
         type: 'stream'
       },
       {
         quality: '480p Mobile Saver',
         size: '650 MB',
         format: 'MP4 / 2ch',
-        url: `https://www.2embed.cc/embed/${imdbId}`,
+        url: `https://www.2embed.cc/embed/${streamTarget}`,
         type: 'stream'
       }
     ];
@@ -93,7 +101,41 @@ router.get('/movie/:id', async (req, res) => {
   }
 });
 
-// 3. GET /api/catalog/search?q=... - Real-Time Live Search
+// 3. GET /api/catalog/tv/:id - Full TV Show Details with Seasons
+router.get('/tv/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const details = await tmdbService.getTvDetails(id);
+    if (!details) {
+      return res.status(404).json({ success: false, message: 'TV series not found' });
+    }
+
+    res.json({
+      success: true,
+      tv: details
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 4. GET /api/catalog/tv/:id/season/:seasonNumber - Episodes list for Season
+router.get('/tv/:id/season/:seasonNumber', async (req, res) => {
+  const { id, seasonNumber } = req.params;
+  try {
+    const episodes = await tmdbService.getTvSeasonEpisodes(id, parseInt(seasonNumber) || 1);
+    res.json({
+      success: true,
+      tvId: id,
+      season: parseInt(seasonNumber) || 1,
+      episodes: episodes
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 5. GET /api/catalog/search?q=... - Real-Time Live Search (Movies + TV)
 router.get('/search', async (req, res) => {
   const q = (req.query.q || '').trim();
   try {
@@ -111,7 +153,7 @@ router.get('/search', async (req, res) => {
   }
 });
 
-// 4. GET /api/catalog/trending
+// 6. GET /api/catalog/trending
 router.get('/trending', async (req, res) => {
   try {
     const movies = await tmdbService.getTrending();

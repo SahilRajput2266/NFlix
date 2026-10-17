@@ -1,4 +1,4 @@
-// Netflix Dynamic TMDB Cloud Controller - Information Page, Player & Downloads
+// Netflix Dynamic TMDB Cloud Controller - TV Shows, Episodes, Smart Fallback & Watchlist
 const categoriesContainer = document.getElementById('categoriesContainer');
 const heroBackdrop = document.getElementById('heroBackdrop');
 const heroTitle = document.getElementById('heroTitle');
@@ -8,7 +8,7 @@ const heroSynopsis = document.getElementById('heroSynopsis');
 const heroPlayBtn = document.getElementById('heroPlayBtn');
 const heroInfoBtn = document.getElementById('heroInfoBtn');
 
-// Movie Detail Sheet Elements
+// Movie / TV Detail Sheet Elements
 const movieDetailModal = document.getElementById('movieDetailModal');
 const detailBackdrop = document.getElementById('detailBackdrop');
 const detailTitle = document.getElementById('detailTitle');
@@ -22,10 +22,17 @@ const detailCast = document.getElementById('detailCast');
 const detailDirector = document.getElementById('detailDirector');
 const detailGenres = document.getElementById('detailGenres');
 const detailPlayBtn = document.getElementById('detailPlayBtn');
+const detailTrailerBtn = document.getElementById('detailTrailerBtn');
 const detailDownloadBtn = document.getElementById('detailDownloadBtn');
+const detailAddListBtn = document.getElementById('detailAddListBtn');
 const closeDetailBtn = document.getElementById('closeDetailBtn');
 const downloadDrawer = document.getElementById('downloadDrawer');
 const downloadLinksList = document.getElementById('downloadLinksList');
+
+// TV Episodes Elements
+const detailEpisodesSection = document.getElementById('detailEpisodesSection');
+const seasonSelectDropdown = document.getElementById('seasonSelectDropdown');
+const episodesListGrid = document.getElementById('episodesListGrid');
 
 // Theater Video Player Elements
 const playerModal = document.getElementById('playerModal');
@@ -33,6 +40,21 @@ const playerTitle = document.getElementById('playerTitle');
 const playerMeta = document.getElementById('playerMeta');
 const closePlayerBtn = document.getElementById('closePlayerBtn');
 const cloudEmbedIframe = document.getElementById('cloudEmbedIframe');
+const theaterEpNav = document.getElementById('theaterEpNav');
+const playerEpBadge = document.getElementById('playerEpBadge');
+const playerNextEpBtn = document.getElementById('playerNextEpBtn');
+
+// Trailer Modal Elements
+const trailerModal = document.getElementById('trailerModal');
+const trailerTitle = document.getElementById('trailerTitle');
+const trailerIframe = document.getElementById('trailerIframe');
+const closeTrailerBtn = document.getElementById('closeTrailerBtn');
+
+// Toast & Watchlist Elements
+const netflixToast = document.getElementById('netflixToast');
+const myListSection = document.getElementById('myListSection');
+const myListGrid = document.getElementById('myListGrid');
+const navMyList = document.getElementById('navMyList');
 
 // Search Bar Elements
 const movieSearchInput = document.getElementById('movieSearchInput');
@@ -41,6 +63,21 @@ const netflixHeader = document.getElementById('netflixHeader');
 
 let currentActiveMovie = null;
 let liveCatalogCache = [];
+let currentSeasonNum = 1;
+let currentEpisodeNum = 1;
+let currentServerIndex = 0;
+
+// Ordered chain for smart failover
+const SERVERS_ORDER = [
+  { id: '2embed', name: 'Server 1 (2Embed Multi)' },
+  { id: 'vidlink', name: 'Server 2 (VidLink Pro)' },
+  { id: 'multiembed', name: 'Server 3 (MultiEmbed Hindi)' },
+  { id: 'embedsu', name: 'Server 4 (Embed.su)' },
+  { id: 'smashy', name: 'Server 5 (SmashyStream)' },
+  { id: 'autoembed', name: 'Server 6 (AutoEmbed FHD)' },
+  { id: 'vidsrcto', name: 'Server 7 (VidSrc)' },
+  { id: 'vidsrcme', name: 'Server 8 (VidSrc.me)' }
+];
 
 // Header Blur on Scroll
 window.addEventListener('scroll', () => {
@@ -51,6 +88,16 @@ window.addEventListener('scroll', () => {
   }
 });
 
+// Toast Notification Helper
+function showToast(message) {
+  if (!netflixToast) return;
+  netflixToast.textContent = message;
+  netflixToast.classList.add('active');
+  setTimeout(() => {
+    netflixToast.classList.remove('active');
+  }, 2800);
+}
+
 // Anti-Redirect Protection
 window.addEventListener('beforeunload', (e) => {
   if (playerModal && playerModal.classList.contains('active')) {
@@ -59,7 +106,121 @@ window.addEventListener('beforeunload', (e) => {
   }
 });
 
-// Load Live Categories from TMDB Backend API
+// ===================================================
+// WATCHLIST ("MY LIST") ENGINE
+// ===================================================
+function getMyList() {
+  try {
+    return JSON.parse(localStorage.getItem('nflix_watchlist') || '[]');
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveMyList(list) {
+  try {
+    localStorage.setItem('nflix_watchlist', JSON.stringify(list));
+  } catch (e) {}
+}
+
+function isInMyList(id) {
+  const list = getMyList();
+  return list.some(item => String(item.id) === String(id));
+}
+
+function toggleMyList(movie) {
+  if (!movie) return;
+  let list = getMyList();
+  const exists = list.some(item => String(item.id) === String(movie.id));
+
+  if (exists) {
+    list = list.filter(item => String(item.id) !== String(movie.id));
+    saveMyList(list);
+    showToast(`Removed "${movie.title}" from My List`);
+  } else {
+    list.unshift({
+      id: movie.id,
+      tmdbId: movie.tmdbId || movie.id,
+      type: movie.type || 'movie',
+      title: movie.title,
+      poster: movie.poster,
+      backdrop: movie.backdrop,
+      year: movie.year,
+      matchScore: movie.matchScore,
+      genre: movie.genre
+    });
+    saveMyList(list);
+    showToast(`✓ Added "${movie.title}" to My List`);
+  }
+
+  updateMyListBtn(movie.id);
+  renderMyList();
+}
+
+function updateMyListBtn(id) {
+  if (!detailAddListBtn) return;
+  if (isInMyList(id)) {
+    detailAddListBtn.innerHTML = '&#10003;'; // Checkmark
+    detailAddListBtn.title = 'In My List';
+    detailAddListBtn.style.color = '#46d369';
+  } else {
+    detailAddListBtn.innerHTML = '+';
+    detailAddListBtn.title = 'Add to My List';
+    detailAddListBtn.style.color = '#ffffff';
+  }
+}
+
+function renderMyList() {
+  const list = getMyList();
+  if (!myListSection || !myListGrid) return;
+
+  if (list.length === 0) {
+    myListSection.style.display = 'none';
+    return;
+  }
+
+  myListSection.style.display = 'block';
+  myListGrid.innerHTML = list.map(m => `
+    <div class="netflix-card" data-movie-id="${m.id}" data-media-type="${m.type || 'movie'}" title="${escapeHtml(m.title)}">
+      <div class="card-poster" style="background-image: url('${m.poster}');">
+        <div class="card-overlay-badges">
+          <span class="badge-n-logo">N</span>
+        </div>
+      </div>
+      <div class="card-info-pane">
+        <div class="card-btn-row">
+          <div style="display:flex; gap:6px;">
+            <button class="btn-circle-play" data-play-id="${m.id}">&#9654;</button>
+          </div>
+          <span class="maturity-rating">16+</span>
+        </div>
+        <div class="card-title">${escapeHtml(m.title)}</div>
+        <div class="card-meta-line">
+          <span class="match-score">${m.matchScore || '96% Match'}</span>
+          <span>${m.year || '2024'}</span>
+          <span class="quality-badge">4K</span>
+        </div>
+        <div class="card-genre-tags">${escapeHtml(m.genre || 'Trending')}</div>
+      </div>
+    </div>
+  `).join('');
+
+  attachCardListeners(myListGrid);
+}
+
+if (navMyList) {
+  navMyList.addEventListener('click', (e) => {
+    e.preventDefault();
+    renderMyList();
+    if (myListSection) {
+      myListSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  });
+}
+
+// ===================================================
+// LOAD LIVE CATALOG FROM TMDB
+// ===================================================
 async function loadNetflixCatalog() {
   try {
     const res = await fetch('/api/catalog/categories');
@@ -73,7 +234,7 @@ async function loadNetflixCatalog() {
     liveCatalogCache = [];
     data.categories.forEach(cat => {
       cat.movies.forEach(m => {
-        if (!liveCatalogCache.find(x => x.id === m.id)) {
+        if (!liveCatalogCache.find(x => String(x.id) === String(m.id))) {
           liveCatalogCache.push(m);
         }
       });
@@ -85,6 +246,7 @@ async function loadNetflixCatalog() {
     }
 
     renderCategories(data.categories);
+    renderMyList();
 
   } catch (err) {
     console.error('Catalog load error:', err);
@@ -100,7 +262,7 @@ function setupHero(movie) {
   heroSynopsis.textContent = movie.synopsis;
 
   heroPlayBtn.onclick = () => openMoviePlayer(movie);
-  heroInfoBtn.onclick = () => openMovieInformationPage(movie.id);
+  heroInfoBtn.onclick = () => openMovieInformationPage(movie.id, movie.type);
 }
 
 function renderCategories(categories) {
@@ -113,7 +275,7 @@ function renderCategories(categories) {
       cardsHtml = cat.movies.map((m, idx) => {
         const rankNum = idx + 1;
         return `
-          <div class="top10-card" data-movie-id="${m.id}" title="${escapeHtml(m.title)}">
+          <div class="top10-card" data-movie-id="${m.id}" data-media-type="${m.type || 'movie'}" title="${escapeHtml(m.title)}">
             <div class="rank-number">${rankNum}</div>
             <div class="top10-poster" style="background-image: url('${m.poster}');">
               <div class="card-overlay-badges"><span class="badge-n-logo">N</span></div>
@@ -123,20 +285,21 @@ function renderCategories(categories) {
       }).join('');
     } else {
       cardsHtml = cat.movies.map(m => {
+        const isTv = m.type === 'tv';
         return `
-          <div class="netflix-card" data-movie-id="${m.id}" title="${escapeHtml(m.title)}">
+          <div class="netflix-card" data-movie-id="${m.id}" data-media-type="${m.type || 'movie'}" title="${escapeHtml(m.title)}">
             <div class="card-poster" style="background-image: url('${m.poster}');">
               <div class="card-overlay-badges">
-                <span class="badge-n-logo">N</span>
+                <span class="badge-n-logo">${isTv ? 'SERIES' : 'N'}</span>
               </div>
             </div>
             <div class="card-info-pane">
               <div class="card-btn-row">
                 <div style="display:flex; gap:6px;">
-                  <button class="btn-circle-play" data-play-id="${m.id}">&#9654;</button>
-                  <button class="btn-circle-sub" title="Add to My List">+</button>
+                  <button class="btn-circle-play" data-play-id="${m.id}" data-media-type="${m.type || 'movie'}">&#9654;</button>
+                  <button class="btn-circle-sub" data-list-id="${m.id}" title="Add to My List">+</button>
                 </div>
-                <span class="maturity-rating">16+</span>
+                <span class="maturity-rating">${isTv ? 'TV-MA' : '16+'}</span>
               </div>
               <div class="card-title">${escapeHtml(m.title)}</div>
               <div class="card-meta-line">
@@ -167,17 +330,31 @@ function renderCategories(categories) {
     `;
   }).join('');
 
-  // Attach click listeners to cards via delegation
-  categoriesContainer.querySelectorAll('[data-movie-id]').forEach(card => {
+  attachCardListeners(categoriesContainer);
+}
+
+function attachCardListeners(container) {
+  container.querySelectorAll('[data-movie-id]').forEach(card => {
     card.addEventListener('click', (e) => {
-      // Don't open info if clicked on play button directly
-      if (e.target.closest('[data-play-id]')) {
-        const playId = e.target.closest('[data-play-id]').getAttribute('data-play-id');
+      // Play button click
+      const playBtn = e.target.closest('[data-play-id]');
+      if (playBtn) {
+        const playId = playBtn.getAttribute('data-play-id');
         openMoviePlayerById(playId);
         return;
       }
+      // Add to list click
+      const listBtn = e.target.closest('[data-list-id]');
+      if (listBtn) {
+        const listId = listBtn.getAttribute('data-list-id');
+        const item = liveCatalogCache.find(x => String(x.id) === String(listId));
+        if (item) toggleMyList(item);
+        return;
+      }
+
       const movieId = card.getAttribute('data-movie-id');
-      openMovieInformationPage(movieId);
+      const mediaType = card.getAttribute('data-media-type') || 'movie';
+      openMovieInformationPage(movieId, mediaType);
     });
   });
 }
@@ -190,13 +367,13 @@ window.scrollRow = function(gridId, direction) {
 };
 
 // ===================================================
-// 1. OPEN MOVIE INFORMATION PAGE (POPUP SHEET)
+// 1. MOVIE & TV SHOW DETAIL SHEET
 // ===================================================
-window.openMovieInformationPage = async function(id) {
+window.openMovieInformationPage = async function(id, mediaType = 'movie') {
   if (searchDropdown) searchDropdown.classList.remove('active');
   downloadDrawer.style.display = 'none';
 
-  // Instant local preview from cache if available
+  // Instant local preview from cache
   const cached = liveCatalogCache.find(m => String(m.id) === String(id));
   if (cached) {
     populateDetailModal(cached);
@@ -204,28 +381,32 @@ window.openMovieInformationPage = async function(id) {
 
   movieDetailModal.classList.add('active');
 
-  // Fetch full live metadata including cast & downloads
+  const endpoint = mediaType === 'tv' ? `/api/catalog/tv/${id}` : `/api/catalog/movie/${id}`;
   try {
-    const res = await fetch(`/api/catalog/movie/${id}`);
+    const res = await fetch(endpoint);
     const data = await res.json();
-    if (data.success && data.movie) {
-      currentActiveMovie = data.movie;
-      populateDetailModal(data.movie);
+    const item = data.movie || data.tv;
+    if (data.success && item) {
+      currentActiveMovie = item;
+      currentActiveMovie.type = mediaType;
+      populateDetailModal(item);
     }
   } catch (err) {
-    console.error('Movie details fetch error:', err);
+    console.error('Details fetch error:', err);
   }
 };
 
 function populateDetailModal(movie) {
   currentActiveMovie = movie;
+  const isTv = movie.type === 'tv' || !!movie.seasons;
+
   detailTitle.textContent = movie.title;
   detailBackdrop.style.backgroundImage = `url("${movie.backdrop || movie.poster}")`;
   detailTagline.textContent = movie.tagline || (movie.genre ? movie.genre.split('/')[0].trim() : 'Streaming Now');
   detailMatchScore.textContent = movie.matchScore || '98% Match';
   detailYear.textContent = movie.year || '2024';
-  detailRuntime.textContent = movie.duration || '2h 15m';
-  detailOverview.textContent = movie.synopsis || 'Full story description streaming in 4K Ultra HD with spatial audio.';
+  detailRuntime.textContent = movie.duration || (isTv ? 'TV Series' : '2h 15m');
+  detailOverview.textContent = movie.synopsis || 'Streaming in 4K Ultra HD with spatial audio.';
 
   // Cast
   if (movie.cast && movie.cast.length > 0) {
@@ -235,21 +416,100 @@ function populateDetailModal(movie) {
   }
 
   // Director
-  detailDirector.textContent = movie.director || 'Visionary Filmmaker';
+  detailDirector.textContent = movie.director || 'Executive Producers';
 
   // Genres
   detailGenres.textContent = movie.genre || (movie.genresList ? movie.genresList.join(', ') : 'Action, Drama');
 
-  // Wire Play and Download buttons
+  // Watchlist button state
+  updateMyListBtn(movie.id);
+  detailAddListBtn.onclick = () => toggleMyList(currentActiveMovie);
+
+  // Trailer button
+  if (movie.trailerKey) {
+    detailTrailerBtn.style.display = 'inline-flex';
+    detailTrailerBtn.onclick = () => openTrailerModal(movie.title, movie.trailerKey);
+  } else {
+    detailTrailerBtn.style.display = 'none';
+  }
+
+  // Primary Actions: Play and Download
   detailPlayBtn.onclick = () => {
     movieDetailModal.classList.remove('active');
-    openMoviePlayer(movie);
+    openMoviePlayer(movie, 1, 1);
   };
 
   detailDownloadBtn.onclick = () => {
     toggleDownloadDrawer(movie);
   };
+
+  // TV Episodes Management
+  if (isTv) {
+    setupTvEpisodes(movie);
+  } else {
+    detailEpisodesSection.style.display = 'none';
+  }
 }
+
+function setupTvEpisodes(tv) {
+  detailEpisodesSection.style.display = 'block';
+  const seasons = tv.seasons || [{ seasonNumber: 1, name: 'Season 1' }];
+
+  seasonSelectDropdown.innerHTML = seasons.map(s => `
+    <option value="${s.seasonNumber}">${s.name || 'Season ' + s.seasonNumber}</option>
+  `).join('');
+
+  seasonSelectDropdown.onchange = (e) => {
+    loadSeasonEpisodes(tv.id, e.target.value);
+  };
+
+  loadSeasonEpisodes(tv.id, seasons[0].seasonNumber);
+}
+
+async function loadSeasonEpisodes(tvId, seasonNumber) {
+  episodesListGrid.innerHTML = '<div style="color:#888888; padding: 20px 0;">Loading episodes...</div>';
+  try {
+    const res = await fetch(`/api/catalog/tv/${tvId}/season/${seasonNumber}`);
+    const data = await res.json();
+    if (data.success && data.episodes && data.episodes.length > 0) {
+      renderEpisodes(tvId, seasonNumber, data.episodes);
+    } else {
+      episodesListGrid.innerHTML = '<div style="color:#888888; padding: 20px 0;">Episodes available via direct player stream.</div>';
+    }
+  } catch (err) {
+    episodesListGrid.innerHTML = '<div style="color:#888888; padding: 20px 0;">Episodes stream active in player.</div>';
+  }
+}
+
+function renderEpisodes(tvId, seasonNum, episodes) {
+  episodesListGrid.innerHTML = episodes.map(ep => {
+    const thumbStyle = ep.still ? `background-image: url('${ep.still}');` : '';
+    return `
+      <div class="episode-card" onclick="playTvEpisode('${tvId}', ${seasonNum}, ${ep.episodeNumber})">
+        <div class="ep-num">${ep.episodeNumber}</div>
+        <div class="ep-thumb-wrap" style="${thumbStyle}">
+          <div class="ep-play-overlay">&#9654;</div>
+        </div>
+        <div class="ep-info">
+          <div class="ep-title-row">
+            <span class="ep-name">${escapeHtml(ep.name)}</span>
+            <span class="ep-runtime">${ep.runtime}</span>
+          </div>
+          <p class="ep-desc">${escapeHtml(ep.overview)}</p>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+window.playTvEpisode = function(tvId, season, episode) {
+  if (movieDetailModal) movieDetailModal.classList.remove('active');
+  const tv = liveCatalogCache.find(m => String(m.id) === String(tvId)) || currentActiveMovie;
+  if (tv) {
+    tv.type = 'tv';
+    openMoviePlayer(tv, season, episode);
+  }
+};
 
 function toggleDownloadDrawer(movie) {
   if (downloadDrawer.style.display === 'block') {
@@ -258,12 +518,12 @@ function toggleDownloadDrawer(movie) {
   }
 
   downloadDrawer.style.display = 'block';
-  const imdb = movie.imdbId || (String(movie.id).startsWith('tt') ? movie.id : `tt${movie.id}`);
+  const targetId = movie.imdbId || movie.tmdbId || movie.id;
 
   const mirrors = [
-    { quality: '1080p FHD (Direct Stream DL)', size: '2.4 GB', url: `https://player.autoembed.co/embed/movie/${imdb}` },
-    { quality: '720p HD (Compressed MP4)', size: '1.2 GB', url: `https://vidsrc.to/embed/movie/${imdb}` },
-    { quality: '480p Mobile Saver', size: '650 MB', url: `https://www.2embed.cc/embed/${imdb}` }
+    { quality: '1080p FHD (Direct Stream DL)', size: '2.4 GB', url: `https://player.autoembed.co/embed/movie/${targetId}` },
+    { quality: '720p HD (Compressed MP4)', size: '1.2 GB', url: `https://vidsrc.to/embed/movie/${targetId}` },
+    { quality: '480p Mobile Saver', size: '650 MB', url: `https://www.2embed.cc/embed/${targetId}` }
   ];
 
   downloadLinksList.innerHTML = mirrors.map(m => `
@@ -285,24 +545,42 @@ closeDetailBtn.addEventListener('click', () => {
 });
 
 // ===================================================
-// 2. THEATER VIDEO PLAYER
+// 2. THEATER VIDEO PLAYER (MOVIES & TV EPISODES)
 // ===================================================
 window.openMoviePlayerById = function(id) {
   const movie = liveCatalogCache.find(m => String(m.id) === String(id));
   if (movie) {
-    openMoviePlayer(movie);
+    openMoviePlayer(movie, 1, 1);
   } else {
     openMovieInformationPage(id);
   }
 };
 
-window.openMoviePlayer = function(movie) {
+window.openMoviePlayer = function(movie, season = 1, episode = 1) {
   currentActiveMovie = movie;
+  currentSeasonNum = season;
+  currentEpisodeNum = episode;
+  currentServerIndex = 0; // Default to Server 1 (2Embed)
+
   if (searchDropdown) searchDropdown.classList.remove('active');
   if (movieDetailModal) movieDetailModal.classList.remove('active');
 
+  const isTv = movie.type === 'tv' || !!movie.seasons;
+
   playerTitle.textContent = movie.title;
   playerMeta.innerHTML = `${movie.year || '2024'} &bull; ${movie.duration || '2h 10m'} &bull; ${movie.genre || 'Action'} &bull; <span style="color:#46d369; font-weight:700;">${movie.matchScore || '98% Match'}</span>`;
+
+  // Episode Nav
+  if (isTv) {
+    theaterEpNav.style.display = 'flex';
+    playerEpBadge.textContent = `S${season} E${episode}`;
+    playerNextEpBtn.onclick = () => {
+      openMoviePlayer(movie, season, episode + 1);
+      showToast(`Loading Episode ${episode + 1}...`);
+    };
+  } else {
+    theaterEpNav.style.display = 'none';
+  }
 
   cloudEmbedIframe.style.display = 'block';
 
@@ -313,8 +591,8 @@ window.openMoviePlayer = function(movie) {
 
   playerModal.classList.add('active');
 
-  // Background enrich with genuine IMDb ID if not yet present
-  if (!movie.imdbId && movie.id) {
+  // Background enrich with genuine IMDb ID
+  if (!movie.imdbId && movie.id && !isTv) {
     fetch(`/api/catalog/movie/${movie.id}`)
       .then(r => r.json())
       .then(d => {
@@ -329,6 +607,14 @@ window.openMoviePlayer = function(movie) {
   }
 };
 
+// Smart Auto-Fallback Switcher
+window.autoSwitchToNextServer = function() {
+  currentServerIndex = (currentServerIndex + 1) % SERVERS_ORDER.length;
+  const nextServer = SERVERS_ORDER[currentServerIndex];
+  switchEmbedServer(nextServer.id);
+  showToast(`Switched to ${nextServer.name}`);
+};
+
 window.switchEmbedServer = function(serverType, btn) {
   if (!currentActiveMovie) return;
 
@@ -337,37 +623,69 @@ window.switchEmbedServer = function(serverType, btn) {
   const hasRealImdb = currentActiveMovie.imdbId && String(currentActiveMovie.imdbId).startsWith('tt') && !String(currentActiveMovie.imdbId).startsWith(`tt${rawId}`);
   const realImdb = isDirectImdb ? String(rawId) : (hasRealImdb ? currentActiveMovie.imdbId : null);
   const tmdbId = isDirectImdb ? '' : String(rawId).replace(/^tt/, '');
+  const isTv = currentActiveMovie.type === 'tv' || !!currentActiveMovie.seasons;
+  const s = currentSeasonNum;
+  const e = currentEpisodeNum;
 
+  // Update active pill button
   document.querySelectorAll('.server-pill').forEach(p => p.classList.remove('active'));
+  const foundIdx = SERVERS_ORDER.findIndex(srv => srv.id === serverType);
+  if (foundIdx !== -1) currentServerIndex = foundIdx;
+
   if (btn) {
     btn.classList.add('active');
   } else {
-    const srvBtn = document.getElementById('srvBtn2Embed');
+    const srvBtn = document.getElementById('srvBtn' + serverType.charAt(0).toUpperCase() + serverType.slice(1));
     if (srvBtn) srvBtn.classList.add('active');
+    else {
+      const defBtn = document.getElementById('srvBtn2Embed');
+      if (defBtn) defBtn.classList.add('active');
+    }
   }
 
   let streamUrl = '';
 
-  if (serverType === '2embed') {
-    // 2Embed works with real IMDb ID or numeric TMDB ID
-    streamUrl = realImdb ? `https://www.2embed.cc/embed/${realImdb}` : `https://www.2embed.cc/embed/${tmdbId}`;
-  } else if (serverType === 'vidlink') {
-    streamUrl = `https://vidlink.pro/movie/${tmdbId || realImdb}`;
-  } else if (serverType === 'multiembed') {
-    streamUrl = realImdb ? `https://multiembed.mov/?video_id=${realImdb}&tmdb=1` : `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1`;
-  } else if (serverType === 'embedsu') {
-    streamUrl = `https://embed.su/embed/movie/${tmdbId || realImdb}`;
-  } else if (serverType === 'smashy') {
-    streamUrl = `https://embed.smashystream.com/playere.php?tmdb=${tmdbId || realImdb}`;
-  } else if (serverType === 'autoembed') {
-    streamUrl = realImdb ? `https://player.autoembed.co/embed/movie/${realImdb}` : `https://player.autoembed.co/embed/movie/${tmdbId}`;
-  } else if (serverType === 'vidsrcto') {
-    streamUrl = realImdb ? `https://vidsrc.to/embed/movie/${realImdb}` : `https://vidsrc.to/embed/movie/${tmdbId}`;
-  } else if (serverType === 'vidsrcme') {
-    streamUrl = realImdb ? `https://vidsrc.me/embed/movie?imdb=${realImdb}` : `https://vidsrc.me/embed/movie?tmdb=${tmdbId}`;
+  if (isTv) {
+    // TV Series Streaming URLs (Season + Episode)
+    if (serverType === '2embed') {
+      streamUrl = `https://www.2embed.cc/embedtv/${tmdbId || realImdb}&s=${s}&e=${e}`;
+    } else if (serverType === 'vidlink') {
+      streamUrl = `https://vidlink.pro/tv/${tmdbId || realImdb}/${s}/${e}`;
+    } else if (serverType === 'multiembed') {
+      streamUrl = realImdb ? `https://multiembed.mov/?video_id=${realImdb}&tmdb=1&s=${s}&e=${e}` : `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=${s}&e=${e}`;
+    } else if (serverType === 'embedsu') {
+      streamUrl = `https://embed.su/embed/tv/${tmdbId || realImdb}/${s}/${e}`;
+    } else if (serverType === 'smashy') {
+      streamUrl = `https://embed.smashystream.com/playere.php?tmdb=${tmdbId || realImdb}&season=${s}&episode=${e}`;
+    } else if (serverType === 'autoembed') {
+      streamUrl = `https://player.autoembed.co/embed/tv/${tmdbId || realImdb}/${s}/${e}`;
+    } else if (serverType === 'vidsrcto') {
+      streamUrl = `https://vidsrc.to/embed/tv/${tmdbId || realImdb}/${s}/${e}`;
+    } else if (serverType === 'vidsrcme') {
+      streamUrl = `https://vidsrc.me/embed/tv?tmdb=${tmdbId || realImdb}&season=${s}&episode=${e}`;
+    }
+  } else {
+    // Movie Streaming URLs
+    if (serverType === '2embed') {
+      streamUrl = realImdb ? `https://www.2embed.cc/embed/${realImdb}` : `https://www.2embed.cc/embed/${tmdbId}`;
+    } else if (serverType === 'vidlink') {
+      streamUrl = `https://vidlink.pro/movie/${tmdbId || realImdb}`;
+    } else if (serverType === 'multiembed') {
+      streamUrl = realImdb ? `https://multiembed.mov/?video_id=${realImdb}&tmdb=1` : `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1`;
+    } else if (serverType === 'embedsu') {
+      streamUrl = `https://embed.su/embed/movie/${tmdbId || realImdb}`;
+    } else if (serverType === 'smashy') {
+      streamUrl = `https://embed.smashystream.com/playere.php?tmdb=${tmdbId || realImdb}`;
+    } else if (serverType === 'autoembed') {
+      streamUrl = realImdb ? `https://player.autoembed.co/embed/movie/${realImdb}` : `https://player.autoembed.co/embed/movie/${tmdbId}`;
+    } else if (serverType === 'vidsrcto') {
+      streamUrl = realImdb ? `https://vidsrc.to/embed/movie/${realImdb}` : `https://vidsrc.to/embed/movie/${tmdbId}`;
+    } else if (serverType === 'vidsrcme') {
+      streamUrl = realImdb ? `https://vidsrc.me/embed/movie?imdb=${realImdb}` : `https://vidsrc.me/embed/movie?tmdb=${tmdbId}`;
+    }
   }
 
-  // Clear frame first to ensure clean reload without cache deadlock
+  // Clear frame first for clean reload
   cloudEmbedIframe.src = 'about:blank';
   setTimeout(() => {
     cloudEmbedIframe.src = streamUrl;
@@ -379,7 +697,14 @@ window.openDirectCinemaWindow = function() {
   const rawId = currentActiveMovie.tmdbId || currentActiveMovie.id;
   const realImdb = currentActiveMovie.imdbId && String(currentActiveMovie.imdbId).startsWith('tt') ? currentActiveMovie.imdbId : null;
   const tmdbId = String(rawId).replace(/^tt/, '');
-  const streamUrl = realImdb ? `https://www.2embed.cc/embed/${realImdb}` : `https://www.2embed.cc/embed/${tmdbId}`;
+  const isTv = currentActiveMovie.type === 'tv' || !!currentActiveMovie.seasons;
+
+  let streamUrl = '';
+  if (isTv) {
+    streamUrl = `https://www.2embed.cc/embedtv/${tmdbId || realImdb}&s=${currentSeasonNum}&e=${currentEpisodeNum}`;
+  } else {
+    streamUrl = realImdb ? `https://www.2embed.cc/embed/${realImdb}` : `https://www.2embed.cc/embed/${tmdbId}`;
+  }
   window.open(streamUrl, '_blank');
 };
 
@@ -390,9 +715,26 @@ closePlayerBtn.addEventListener('click', () => {
   currentActiveMovie = null;
 });
 
+// ===================================================
+// 3. TRAILER PREVIEW MODAL
+// ===================================================
+function openTrailerModal(title, trailerKey) {
+  if (!trailerKey) return;
+  trailerTitle.textContent = `${title} — Official Trailer`;
+  trailerIframe.src = `https://www.youtube-nocookie.com/embed/${trailerKey}?autoplay=1`;
+  trailerModal.classList.add('active');
+}
+
+closeTrailerBtn.addEventListener('click', () => {
+  trailerIframe.src = '';
+  trailerModal.classList.remove('active');
+});
+
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
-    if (playerModal.classList.contains('active')) {
+    if (trailerModal.classList.contains('active')) {
+      closeTrailerBtn.click();
+    } else if (playerModal.classList.contains('active')) {
       closePlayerBtn.click();
     } else if (movieDetailModal.classList.contains('active')) {
       closeDetailBtn.click();
@@ -400,7 +742,6 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// Close modals when clicking backdrop outside dialog
 movieDetailModal.addEventListener('click', (e) => {
   if (e.target === movieDetailModal) {
     movieDetailModal.classList.remove('active');
@@ -413,8 +754,14 @@ playerModal.addEventListener('click', (e) => {
   }
 });
 
+trailerModal.addEventListener('click', (e) => {
+  if (e.target === trailerModal) {
+    closeTrailerBtn.click();
+  }
+});
+
 // ===================================================
-// 3. SEARCH BAR WITH AUTO-SUGGESTIONS
+// 4. SEARCH BAR WITH AUTO-SUGGESTIONS
 // ===================================================
 let searchDebounce = null;
 const searchToggleBtn = document.getElementById('searchToggleBtn');
@@ -500,7 +847,7 @@ function renderSearchSuggestions(results, query) {
         if (!liveCatalogCache.find(x => String(x.id) === String(m.id))) {
           liveCatalogCache.push(m);
         }
-        openMovieInformationPage(m.id);
+        openMovieInformationPage(m.id, m.type || 'movie');
         searchDropdown.classList.remove('active');
       };
 
@@ -515,13 +862,13 @@ function renderSearchSuggestions(results, query) {
     customItem.innerHTML = `
       <div class="dropdown-info">
         <div class="dropdown-title">Explore "${escapeHtml(query)}" via Cloud</div>
-        <div class="dropdown-meta"><span>Instant Movie Information</span></div>
+        <div class="dropdown-meta"><span>Instant Media Information</span></div>
       </div>
       <div class="dropdown-play-icon">&#9654;</div>
     `;
 
     customItem.onclick = () => {
-      openMovieInformationPage(targetImdb);
+      openMovieInformationPage(targetImdb, 'movie');
       searchDropdown.classList.remove('active');
     };
 
@@ -549,5 +896,5 @@ function escapeHtml(str) {
   })[m]);
 }
 
-// Kickoff catalog fetch
+// Initial Catalog Load
 loadNetflixCatalog();

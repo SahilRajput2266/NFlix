@@ -91,6 +91,16 @@
   <!-- Main Netflix Catalog Rows Container -->
   <main class="netflix-rows-container">
     
+    <!-- User Watchlist Section (My List) -->
+    <section id="myListSection" class="netflix-row" style="display:none;">
+      <div class="row-header-wrap">
+        <h2 class="netflix-row-title">⭐ My List</h2>
+      </div>
+      <div class="row-carousel-wrap">
+        <div id="myListGrid" class="cards-carousel"></div>
+      </div>
+    </section>
+
     <!-- Dynamic Category Rows (Populated by live TMDB modular service) -->
     <div id="categoriesContainer">
       <div class="loading-spinner-wrap">
@@ -138,17 +148,21 @@
           <h2 id="detailTitle" class="detail-movie-title">Movie Title</h2>
           <div class="detail-tagline" id="detailTagline"></div>
           
-          <!-- Primary Actions inside Detail Page: Play and Download! -->
+          <!-- Primary Actions inside Detail Page: Play, Trailer, and Download! -->
           <div class="detail-actions-row">
             <button id="detailPlayBtn" class="btn btn-netflix-play">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
               Play Now
             </button>
+            <button id="detailTrailerBtn" class="btn btn-netflix-trailer" style="display:none;" title="Watch official trailer">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              Trailer
+            </button>
             <button id="detailDownloadBtn" class="btn btn-netflix-download">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
               Download
             </button>
-            <button class="btn-circle-action" title="Add to List">+</button>
+            <button id="detailAddListBtn" class="btn-circle-action" title="Add to My List">+</button>
             <button class="btn-circle-action" title="Rate">👍</button>
           </div>
         </div>
@@ -157,7 +171,7 @@
       <!-- Detail Body (2-column layout) -->
       <div class="detail-body-container">
         
-        <!-- Left Side: Metadata & Story -->
+        <!-- Left Side: Metadata, Story & TV Episodes -->
         <div class="detail-main-info">
           <div class="detail-meta-row">
             <span class="match-score" id="detailMatchScore">98% Match</span>
@@ -179,6 +193,17 @@
               <span>Download Movie Mirrors (Offline Playback)</span>
             </div>
             <div class="download-links-list" id="downloadLinksList"></div>
+          </div>
+
+          <!-- TV Episodes Section (Only visible for TV Series) -->
+          <div id="detailEpisodesSection" class="tv-episodes-container" style="display:none;">
+            <div class="episodes-header-row">
+              <h3 class="episodes-title">Episodes</h3>
+              <select id="seasonSelectDropdown" class="season-select-dropdown">
+                <option value="1">Season 1</option>
+              </select>
+            </div>
+            <div id="episodesListGrid" class="episodes-list-grid"></div>
           </div>
         </div>
 
@@ -223,9 +248,20 @@
             <h3 id="playerTitle" class="theater-movie-title">Movie Title</h3>
             <span id="playerMeta" class="theater-movie-sub">2024 &bull; 4K Ultra HD &bull; Multi-Audio</span>
           </div>
+
+          <!-- TV Episode Navigator (When playing Series) -->
+          <div id="theaterEpNav" class="theater-ep-nav" style="display:none;">
+            <span id="playerEpBadge" class="ep-badge">S1 E1</span>
+            <button id="playerNextEpBtn" class="next-ep-btn" title="Watch next episode">⏭ Next Ep</button>
+          </div>
         </div>
 
         <div class="topbar-right">
+          <!-- Fast Fallback Server Button -->
+          <button id="playerNextServerBtn" class="fast-server-btn" onclick="autoSwitchToNextServer()" title="Auto-try next server if current server buffers">
+            ⏭ Next Server
+          </button>
+
           <!-- Server Switcher Pills -->
           <div class="stream-servers-pillbox" id="serversPillbox">
             <span class="server-label">SERVER:</span>
@@ -264,7 +300,7 @@
             <span class="shield-text"><strong>Live Stream Active:</strong> Multi-Server Cloud Aggregator (4K / 1080p FHD)</span>
           </div>
           <div class="strip-right">
-            <span>Switch servers above if needed &bull; Click <strong>Cinema Window</strong> for fullscreen tab</span>
+            <span>Click <strong>⏭ Next Server</strong> if stuck &bull; Click <strong>Cinema Window</strong> for fullscreen tab</span>
           </div>
         </div>
 
@@ -272,6 +308,24 @@
 
     </div>
   </div>
+
+  <!-- ===================================================
+       3. OFFICIAL YOUTUBE TRAILER MODAL
+       =================================================== -->
+  <div id="trailerModal" class="modal-backdrop">
+    <div class="netflix-trailer-dialog">
+      <div class="trailer-header">
+        <h3 id="trailerTitle" class="trailer-heading">Official Trailer</h3>
+        <button id="closeTrailerBtn" class="netflix-close-btn" title="Close Trailer">&times;</button>
+      </div>
+      <div class="trailer-iframe-wrap">
+        <iframe id="trailerIframe" allowfullscreen="true" allow="autoplay; encrypted-media"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Toast Notification -->
+  <div id="netflixToast" class="netflix-toast"></div>
 
   <script src="cloudStream.js"></script>
 </body>

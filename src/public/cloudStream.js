@@ -274,11 +274,36 @@ function renderCategories(categories) {
     if (isRanked) {
       cardsHtml = cat.movies.map((m, idx) => {
         const rankNum = idx + 1;
+        const isTv = m.type === 'tv';
+        const isTen = rankNum === 10;
         return `
-          <div class="top10-card" data-movie-id="${m.id}" data-media-type="${m.type || 'movie'}" title="${escapeHtml(m.title)}">
-            <div class="rank-number">${rankNum}</div>
-            <div class="top10-poster" style="background-image: url('${m.poster}');">
-              <div class="card-overlay-badges"><span class="badge-n-logo">N</span></div>
+          <div class="top10-card ${isTen ? 'rank-10-card' : ''}" data-movie-id="${m.id}" data-media-type="${m.type || 'movie'}" title="${escapeHtml(m.title)}">
+            <div class="top10-rank-wrap rank-${rankNum}">
+              <span class="rank-number">${rankNum}</span>
+            </div>
+            <div class="top10-poster-wrap">
+              <div class="top10-poster" style="background-image: url('${m.poster}');">
+                <div class="card-overlay-badges">
+                  <span class="badge-n-logo">${isTv ? 'SERIES' : 'N'}</span>
+                  <span class="badge-top10-rank">TOP 10</span>
+                </div>
+                <div class="top10-hover-pane">
+                  <div class="card-btn-row">
+                    <div style="display:flex; gap:6px;">
+                      <button class="btn-circle-play" data-play-id="${m.id}" data-media-type="${m.type || 'movie'}" title="Play">&#9654;</button>
+                      <button class="btn-circle-sub" data-list-id="${m.id}" title="Add to My List">+</button>
+                    </div>
+                    <span class="maturity-rating">${isTv ? 'TV-MA' : '16+'}</span>
+                  </div>
+                  <div class="card-title">${escapeHtml(m.title)}</div>
+                  <div class="card-meta-line">
+                    <span class="match-score">${m.matchScore || '98% Match'}</span>
+                    <span>${m.year || '2024'}</span>
+                    <span class="quality-badge">4K</span>
+                  </div>
+                  <div class="card-genre-tags">${escapeHtml(m.genre || '')}</div>
+                </div>
+              </div>
             </div>
           </div>
         `;
@@ -616,6 +641,17 @@ window.autoSwitchToNextServer = function() {
 };
 
 window.switchEmbedServer = function(serverType, btn) {
+  // Sync dropdown & Hindi button active state
+  const srvSelect = document.getElementById('playerServerSelect');
+  if (srvSelect) srvSelect.value = serverType;
+  const hindiBtn = document.getElementById('playerHindiBtn');
+  if (hindiBtn) {
+    if (serverType === 'multiembed') {
+      hindiBtn.classList.add('active');
+    } else {
+      hindiBtn.classList.remove('active');
+    }
+  }
   if (!currentActiveMovie) return;
 
   const rawId = currentActiveMovie.tmdbId || currentActiveMovie.id;

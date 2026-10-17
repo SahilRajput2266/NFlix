@@ -554,21 +554,22 @@ body.netflix-body {
 
 .carousel-arrow {
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 44px;
+  top: 0;
+  bottom: 0;
+  width: 48px;
   height: 100%;
-  background: rgba(20, 20, 20, 0.65);
+  background: rgba(14, 14, 14, 0.65);
+  backdrop-filter: blur(4px);
   color: #ffffff;
   border: none;
-  font-size: 1.8rem;
+  font-size: 1.9rem;
   cursor: pointer;
   z-index: 30;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity 0.2s, background-color 0.2s;
+  transition: all 0.25s cubic-bezier(0.2, 0, 0.2, 1);
 }
 
 .row-carousel-wrap:hover .carousel-arrow {
@@ -576,19 +577,22 @@ body.netflix-body {
 }
 
 .carousel-arrow:hover {
-  background: rgba(20, 20, 20, 0.9);
+  background: rgba(10, 10, 10, 0.95);
+  color: var(--netflix-red);
 }
 
 .carousel-arrow.left {
   left: -4%;
-  border-top-right-radius: 4px;
-  border-bottom-right-radius: 4px;
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
+  background: linear-gradient(90deg, rgba(14, 14, 14, 0.85) 0%, rgba(14, 14, 14, 0.4) 60%, transparent 100%);
 }
 
 .carousel-arrow.right {
   right: -4%;
-  border-top-left-radius: 4px;
-  border-bottom-left-radius: 4px;
+  border-top-left-radius: 6px;
+  border-bottom-left-radius: 6px;
+  background: linear-gradient(270deg, rgba(14, 14, 14, 0.85) 0%, rgba(14, 14, 14, 0.4) 60%, transparent 100%);
 }
 
 /* Standard Movie Card */
@@ -713,52 +717,167 @@ body.netflix-body {
 }
 
 /* ==========================================
-   TOP 10 RANKED ROW CARDS
+   TOP 10 RANKED ROW CARDS (NETFLIX SIGNATURE DESIGN)
    ========================================== */
 .top10-card {
   position: relative;
   flex: 0 0 calc((100% - 60px) / 5);
-  min-width: 220px;
-  max-width: 300px;
+  min-width: 235px;
+  max-width: 295px;
+  height: 250px;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   cursor: pointer;
-  transition: transform 0.3s cubic-bezier(0.2, 0, 0.2, 1);
+  padding: 10px 0 4px;
+  transition: transform 0.35s cubic-bezier(0.2, 0, 0.2, 1);
+  overflow: visible;
+}
+
+.top10-card.rank-10-card {
+  flex: 0 0 calc((100% - 60px) / 4.7);
+  min-width: 275px;
+  max-width: 330px;
 }
 
 .top10-card:hover {
-  transform: scale(1.15);
-  z-index: 25;
+  transform: scale(1.14) translateY(-8px);
+  z-index: 35;
+}
+
+/* Rank Number Wrapper */
+.top10-rank-wrap {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  width: 92px;
+  height: 100%;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Rank 1 is naturally narrower, tuck nicely */
+.top10-rank-wrap.rank-1 {
+  width: 72px;
+}
+
+/* Rank 10 is wider for 2 digits */
+.top10-rank-wrap.rank-10 {
+  width: 132px;
 }
 
 .rank-number {
-  font-family: var(--netflix-brand-font);
-  font-size: 8rem;
-  line-height: 0.8;
+  font-family: var(--netflix-brand-font), 'Bebas Neue', 'Impact', sans-serif;
+  font-size: 13.5rem;
+  line-height: 0.72;
   font-weight: 900;
-  color: #000000;
-  -webkit-text-stroke: 4px #595959;
   letter-spacing: -6px;
-  user-select: none;
-  position: relative;
-  left: 10px;
-  z-index: 2;
-  margin-right: -25px;
+  color: #0b0b0b;
+  -webkit-text-stroke: 5px #727272;
+  text-shadow: 0 0 24px rgba(0, 0, 0, 0.95), 2px 2px 6px rgba(0, 0, 0, 0.85);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.9));
+  transform: translateY(6px);
+  display: inline-block;
+  transition: color 0.3s ease, -webkit-text-stroke-color 0.3s ease, filter 0.3s ease;
 }
 
 .top10-card:hover .rank-number {
+  color: #1a1a1a;
   -webkit-text-stroke-color: #ffffff;
+  filter: drop-shadow(0 0 18px rgba(229, 9, 20, 0.7)) drop-shadow(0 0 6px #ffffff);
+}
+
+/* Poster Card Wrapper (Gracefully overlaps the right edge of rank number) */
+.top10-poster-wrap {
+  position: relative;
+  z-index: 4;
+  margin-left: -18px;
+  flex: 1;
+  height: 100%;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: #1a1a1a;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.top10-card:hover .top10-poster-wrap {
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.98), 0 0 18px rgba(229, 9, 20, 0.35);
+  border-color: rgba(255, 255, 255, 0.28);
 }
 
 .top10-poster {
-  width: 140px;
-  aspect-ratio: 2 / 3;
-  border-radius: 4px;
+  width: 100%;
+  height: 100%;
   background-size: cover;
   background-position: center;
   position: relative;
-  z-index: 3;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.8);
+  transition: transform 0.4s ease;
+}
+
+.top10-card:hover .top10-poster {
+  transform: scale(1.04);
+}
+
+/* TOP 10 Ribbon / Badge */
+.badge-top10-rank {
+  background: var(--netflix-red);
+  color: #ffffff;
+  font-family: var(--netflix-brand-font), 'Bebas Neue', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+  padding: 2px 6px;
+  border-radius: 2px;
+  box-shadow: 0 2px 6px rgba(229, 9, 20, 0.6);
+  text-align: center;
+  line-height: 1;
+}
+
+/* Hover Info Pane inside Top 10 Poster */
+.top10-hover-pane {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(14, 14, 14, 0.98) 0%, rgba(14, 14, 14, 0.88) 65%, rgba(14, 14, 14, 0) 100%);
+  padding: 16px 10px 10px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+}
+
+.top10-card:hover .top10-hover-pane {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.top10-hover-pane .card-btn-row {
+  margin-bottom: 6px;
+}
+
+.top10-hover-pane .card-title {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 3px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.top10-hover-pane .card-meta-line {
+  font-size: 0.7rem;
+  gap: 5px;
+  margin-bottom: 2px;
+}
+
+.top10-hover-pane .card-genre-tags {
+  font-size: 0.68rem;
+  color: #b3b3b3;
 }
 
 /* ==========================================
@@ -1266,14 +1385,413 @@ body.netflix-body {
   color: #555555;
 }
 
-@media (max-width: 900px) {
-  .hero-title { font-size: 2.8rem; }
-  .netflix-card { flex: 0 0 calc((100% - 30px) / 3); }
-  .top10-card { flex: 0 0 calc((100% - 30px) / 3); }
-  .detail-body-container { grid-template-columns: 1fr; }
-  .footer-links { grid-template-columns: repeat(2, 1fr); }
+/* ===================================================
+   MASTER MOBILE & MULTI-DEVICE RESPONSIVENESS SUITE
+   =================================================== */
+
+/* Tablet & Smaller Laptops (<= 1024px) */
+@media (max-width: 1024px) {
+  .hero-billboard { height: 75vh; min-height: 480px; }
+  .hero-title { font-size: 3.2rem; }
+  .netflix-card { flex: 0 0 calc((100% - 40px) / 4); min-width: 165px; }
+  .top10-card { flex: 0 0 215px; height: 220px; }
+  .top10-card.rank-10-card { flex: 0 0 250px; }
+  .rank-number { font-size: 11.5rem; }
+  .top10-rank-wrap { width: 80px; }
+  .top10-rank-wrap.rank-1 { width: 60px; }
+  .top10-rank-wrap.rank-10 { width: 115px; }
+  .detail-body-container { grid-template-columns: 1.4fr 1fr; gap: 24px; padding: 24px; }
   .stream-servers-pillbox { display: none; }
-  .search-results-dropdown { width: 300px; }
+}
+
+/* Tablets & Mobile Landscape (<= 768px) */
+@media (max-width: 768px) {
+  /* Navigation Bar */
+  .netflix-header {
+    height: 56px;
+    padding: 0 14px;
+  }
+  .brand-text {
+    font-size: 1.65rem;
+    letter-spacing: 1.5px;
+  }
+  .nav-left { gap: 12px; }
+  .netflix-nav-links { display: none; } /* Kept clean for mobile header */
+  .nav-right { gap: 10px; }
+  .search-input {
+    width: 110px;
+    font-size: 0.78rem;
+  }
+  .search-input:focus {
+    width: 155px;
+  }
+  .search-results-dropdown {
+    width: calc(100vw - 28px);
+    max-width: 320px;
+    right: -10px;
+    left: auto;
+    max-height: 65vh;
+  }
+
+  /* Hero Banner */
+  .hero-billboard {
+    height: 62vh;
+    min-height: 410px;
+    padding: 0 16px;
+  }
+  .hero-content {
+    max-width: 100%;
+    margin-top: 30px;
+  }
+  .hero-title {
+    font-size: 2.3rem;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .hero-synopsis {
+    font-size: 0.85rem;
+    line-height: 1.4;
+    -webkit-line-clamp: 2;
+    margin-bottom: 16px;
+  }
+  .hero-actions {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .hero-actions .btn {
+    padding: 8px 16px;
+    font-size: 0.84rem;
+  }
+
+  /* Rows & Carousels */
+  .netflix-rows-container {
+    margin-top: -24px;
+    padding-bottom: 40px;
+  }
+  .netflix-row {
+    margin-bottom: 26px;
+    padding: 0 14px;
+  }
+  .netflix-row-title {
+    font-size: 1.15rem;
+    margin-bottom: 8px;
+  }
+  .cards-carousel {
+    gap: 10px;
+    padding: 10px 0;
+    margin: -10px 0;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+  .carousel-arrow {
+    display: none !important; /* Hide arrows on touchscreens */
+  }
+
+  /* Standard Movie Cards */
+  .netflix-card {
+    flex: 0 0 140px;
+    min-width: 140px;
+    max-width: 155px;
+    scroll-snap-align: start;
+  }
+  .netflix-card:hover {
+    transform: none; /* No jumpy scales on touch */
+  }
+  .card-info-pane {
+    padding: 6px 8px 10px;
+  }
+  .card-title {
+    font-size: 0.8rem;
+  }
+  .card-meta-line {
+    font-size: 0.65rem;
+    gap: 4px;
+  }
+  .card-genre-tags {
+    font-size: 0.62rem;
+  }
+
+  /* TOP 10 Cards */
+  .top10-card {
+    flex: 0 0 185px;
+    min-width: 185px;
+    height: 195px;
+    scroll-snap-align: start;
+    padding: 6px 0 2px;
+  }
+  .top10-card.rank-10-card {
+    flex: 0 0 215px;
+    min-width: 215px;
+  }
+  .top10-card:hover {
+    transform: none;
+  }
+  .top10-rank-wrap {
+    width: 66px;
+  }
+  .top10-rank-wrap.rank-1 {
+    width: 48px;
+  }
+  .top10-rank-wrap.rank-10 {
+    width: 95px;
+  }
+  .rank-number {
+    font-size: 9.6rem;
+    -webkit-text-stroke-width: 4px;
+    letter-spacing: -4px;
+  }
+  .top10-poster-wrap {
+    margin-left: -14px;
+  }
+
+  /* Full Screen Theater Video Player on Mobile */
+  .modal-backdrop {
+    padding: 0 !important;
+    background: #000000 !important;
+  }
+  .netflix-theater-modal {
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-width: 100vw !important;
+    max-height: 100dvh !important;
+    border-radius: 0 !important;
+    border: none !important;
+  }
+  .theater-topbar {
+    height: auto !important;
+    min-height: 48px;
+    padding: 8px 10px !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    justify-content: space-between !important;
+    background-color: #111111 !important;
+  }
+  .topbar-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+  .theater-movie-title {
+    font-size: 0.9rem !important;
+    max-width: 160px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  .theater-movie-sub {
+    font-size: 0.65rem !important;
+    white-space: nowrap !important;
+  }
+  .netflix-close-btn {
+    font-size: 1.8rem !important;
+    padding: 0 4px !important;
+    margin-left: auto !important;
+  }
+  .topbar-right {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    gap: 6px !important;
+    padding-top: 4px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+  }
+  .hindi-audio-btn {
+    font-size: 0.72rem !important;
+    padding: 5px 8px !important;
+    flex-shrink: 0 !important;
+  }
+  .server-dropdown-wrap {
+    flex: 1 !important;
+    min-width: 0 !important;
+  }
+  .server-select-dropdown {
+    width: 100% !important;
+    max-width: 100% !important;
+    font-size: 0.72rem !important;
+    padding: 5px 6px !important;
+  }
+  .fast-server-btn {
+    font-size: 0.72rem !important;
+    padding: 5px 8px !important;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+  }
+  .cinema-tab-btn {
+    display: none !important; /* redundant on mobile full screen */
+  }
+  .theater-canvas-wrap {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+  .player-protection-strip {
+    height: 24px;
+    padding: 0 10px;
+    font-size: 0.62rem;
+    justify-content: center;
+  }
+  .player-protection-strip span:last-child {
+    display: none;
+  }
+
+  /* Full Screen Movie Detail Modal on Mobile */
+  .movie-detail-dialog {
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-width: 100vw !important;
+    max-height: 100dvh !important;
+    border-radius: 0 !important;
+    border: none !important;
+  }
+  .detail-hero-banner {
+    height: 240px !important;
+    padding: 16px 14px !important;
+  }
+  .detail-movie-title {
+    font-size: 1.9rem !important;
+    letter-spacing: 1px !important;
+  }
+  .detail-tagline {
+    font-size: 0.8rem !important;
+    margin-bottom: 8px !important;
+  }
+  .detail-actions-row {
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+  }
+  .detail-actions-row .btn {
+    padding: 8px 14px !important;
+    font-size: 0.82rem !important;
+  }
+  .detail-body-container {
+    grid-template-columns: 1fr !important;
+    gap: 18px !important;
+    padding: 18px 14px 40px !important;
+  }
+  .detail-meta-row {
+    font-size: 0.8rem !important;
+    gap: 8px !important;
+  }
+  .detail-overview {
+    font-size: 0.88rem !important;
+    line-height: 1.5 !important;
+  }
+  .episodes-header-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+  .season-select-dropdown {
+    width: 100% !important;
+  }
+  .episode-card {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+    padding: 12px 10px !important;
+  }
+  .ep-thumb-wrap {
+    width: 100% !important;
+    height: 160px !important;
+    max-width: 100% !important;
+  }
+
+  /* Footer */
+  .netflix-footer {
+    padding: 36px 14px 28px;
+  }
+  .footer-links {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    font-size: 0.78rem;
+  }
+}
+
+/* Mobile Portrait / Small Screen (<= 480px) */
+@media (max-width: 480px) {
+  .hero-billboard {
+    height: 56vh;
+    min-height: 370px;
+  }
+  .hero-title {
+    font-size: 1.95rem;
+  }
+  .netflix-card {
+    flex: 0 0 120px;
+    min-width: 120px;
+    max-width: 130px;
+  }
+  .top10-card {
+    flex: 0 0 155px;
+    min-width: 155px;
+    height: 165px;
+  }
+  .top10-card.rank-10-card {
+    flex: 0 0 180px;
+    min-width: 180px;
+  }
+  .top10-rank-wrap {
+    width: 52px;
+  }
+  .top10-rank-wrap.rank-1 {
+    width: 36px;
+  }
+  .top10-rank-wrap.rank-10 {
+    width: 76px;
+  }
+  .rank-number {
+    font-size: 7.8rem;
+    -webkit-text-stroke-width: 3px;
+    letter-spacing: -3px;
+  }
+  .top10-poster-wrap {
+    margin-left: -10px;
+  }
+}
+
+/* Mobile Landscape Full Screen Theater (max-height <= 500px) */
+@media (max-height: 500px) and (orientation: landscape) {
+  .theater-topbar {
+    min-height: 38px !important;
+    height: 38px !important;
+    padding: 3px 10px !important;
+    flex-wrap: nowrap !important;
+    flex-direction: row !important;
+  }
+  .theater-movie-title {
+    font-size: 0.8rem !important;
+    max-width: 140px !important;
+  }
+  .theater-movie-sub {
+    display: none !important;
+  }
+  .topbar-right {
+    width: auto !important;
+    border-top: none !important;
+    padding-top: 0 !important;
+  }
+  .hindi-audio-btn {
+    font-size: 0.68rem !important;
+    padding: 3px 6px !important;
+  }
+  .server-select-dropdown {
+    font-size: 0.68rem !important;
+    padding: 3px 6px !important;
+    max-width: 110px !important;
+  }
+  .fast-server-btn {
+    font-size: 0.68rem !important;
+    padding: 3px 6px !important;
+  }
+  .player-protection-strip {
+    display: none !important;
+  }
 }
 
 /* ===================================================
@@ -1546,3 +2064,66 @@ body.netflix-body {
   transform: translateY(0);
 }
 
+
+/* ==========================================
+   DEDICATED HINDI AUDIO & SERVER SELECTOR
+   ========================================== */
+.hindi-audio-btn {
+  background: linear-gradient(135deg, #e67e22 0%, #27ae60 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  white-space: nowrap;
+}
+
+.hindi-audio-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 14px rgba(230, 126, 34, 0.55);
+  filter: brightness(1.1);
+}
+
+.hindi-audio-btn.active {
+  outline: 2px solid #ffffff;
+  background: linear-gradient(135deg, #d35400 0%, #1e8449 100%);
+  box-shadow: 0 0 14px rgba(39, 174, 96, 0.7);
+}
+
+.server-dropdown-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.server-select-dropdown {
+  background-color: #222222;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s, background-color 0.2s;
+  max-width: 220px;
+}
+
+.server-select-dropdown:hover, .server-select-dropdown:focus {
+  border-color: var(--netflix-red);
+  background-color: #2a2a2a;
+}
+
+.server-select-dropdown option {
+  background-color: #1a1a1a;
+  color: #ffffff;
+  padding: 6px;
+}

@@ -257,23 +257,29 @@
         </div>
 
         <div class="topbar-right">
-          <!-- Fast Fallback Server Button -->
-          <button id="playerNextServerBtn" class="fast-server-btn" onclick="autoSwitchToNextServer()" title="Auto-try next server if current server buffers">
-            ⏭ Next Server
+          <!-- Dedicated Hindi Audio Switcher Button -->
+          <button id="playerHindiBtn" class="hindi-audio-btn" onclick="switchEmbedServer('multiembed')" title="1-Click Switch to Hindi Dubbed / Multi-Audio">
+            &#127470;&#127475; Hindi Audio
           </button>
 
-          <!-- Server Switcher Pills -->
-          <div class="stream-servers-pillbox" id="serversPillbox">
-            <span class="server-label">SERVER:</span>
-            <button class="server-pill active" id="srvBtn2Embed" onclick="switchEmbedServer('2embed', this)">🍿 Server 1 (2Embed Multi)</button>
-            <button class="server-pill" id="srvBtnVidLink" onclick="switchEmbedServer('vidlink', this)">⚡ Server 2 (VidLink Pro)</button>
-            <button class="server-pill" id="srvBtnMulti" onclick="switchEmbedServer('multiembed', this)">🇮🇳 Server 3 (MultiEmbed Hindi)</button>
-            <button class="server-pill" id="srvBtnEmbedSu" onclick="switchEmbedServer('embedsu', this)">🚀 Server 4 (Embed.su)</button>
-            <button class="server-pill" id="srvBtnSmashy" onclick="switchEmbedServer('smashy', this)">💥 Server 5 (SmashyStream)</button>
-            <button class="server-pill" id="srvBtnAuto" onclick="switchEmbedServer('autoembed', this)">🎬 Server 6 (AutoEmbed FHD)</button>
-            <button class="server-pill" id="srvBtnVidSrc" onclick="switchEmbedServer('vidsrcto', this)">🌐 Server 7 (VidSrc)</button>
-            <button class="server-pill" id="srvBtnVidSrcMe" onclick="switchEmbedServer('vidsrcme', this)">📽️ Server 8 (VidSrc.me)</button>
+          <!-- Server / Multi-Audio Selector Dropdown (Always visible on all screens) -->
+          <div class="server-dropdown-wrap">
+            <select id="playerServerSelect" class="server-select-dropdown" onchange="switchEmbedServer(this.value)">
+              <option value="2embed">&#9889; Server 1 (Multi-Audio Auto)</option>
+              <option value="multiembed">&#127470;&#127475; Server 3 (Hindi Dubbed / Multi)</option>
+              <option value="vidlink">&#128640; Server 2 (VidLink Pro 4K)</option>
+              <option value="embedsu">&#127916; Server 4 (Embed.su HD)</option>
+              <option value="smashy">&#128293; Server 5 (SmashyStream)</option>
+              <option value="autoembed">&#10024; Server 6 (AutoEmbed FHD)</option>
+              <option value="vidsrcto">&#128225; Server 7 (VidSrc)</option>
+              <option value="vidsrcme">&#127760; Server 8 (VidSrc.me)</option>
+            </select>
           </div>
+
+          <!-- Fast Fallback Server Button -->
+          <button id="playerNextServerBtn" class="fast-server-btn" onclick="autoSwitchToNextServer()" title="Auto-try next server if current server buffers">
+            &#9197; Next Server
+          </button>
 
           <button id="openCinemaTabBtn" class="cinema-tab-btn" onclick="openDirectCinemaWindow()" title="Open clean full screen in isolated cinema window">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>

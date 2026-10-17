@@ -69,14 +69,38 @@ async function fetchTorrentioStreams(imdbId, type = 'movie', season = 1, episode
             const isTamil = /tamil/i.test(rawTitle);
 
             let audioBadge = 'English';
-            if (isHindi && isDualAudio) audioBadge = '🇮🇳 Hindi + English Dual Audio';
-            else if (isHindi) audioBadge = '🇮🇳 Hindi Dubbed';
-            else if (isDualAudio) audioBadge = '🎧 Dual Audio';
-            else if (isMultiAudio) audioBadge = '🌐 Multi-Language';
-            else if (isTelugu) audioBadge = 'Telugu Audio';
-            else if (isTamil) audioBadge = 'Tamil Audio';
+            let language = 'English';
 
-            const firstLine = rawTitle.split('\n')[0].replace(/[\.\[\]]/g, ' ').trim();
+            if (isHindi && isDualAudio) {
+              audioBadge = '🇮🇳 Hindi + English Dual Audio';
+              language = 'Hindi + English Dual Audio';
+            } else if (isHindi) {
+              audioBadge = '🇮🇳 Hindi Dubbed';
+              language = 'Hindi Dubbed';
+            } else if (isDualAudio) {
+              audioBadge = '🎧 Dual Audio';
+              language = 'Dual Audio';
+            } else if (isTelugu) {
+              audioBadge = 'Telugu Audio';
+              language = 'Telugu';
+            } else if (isTamil) {
+              audioBadge = 'Tamil Audio';
+              language = 'Tamil';
+            } else if (/spanish|castellano/i.test(rawTitle)) {
+              audioBadge = 'Spanish Audio';
+              language = 'Spanish';
+            } else if (/french|vf\b/i.test(rawTitle)) {
+              audioBadge = 'French Audio';
+              language = 'French';
+            } else if (/russian|rus\b/i.test(rawTitle)) {
+              audioBadge = 'Russian Audio';
+              language = 'Russian';
+            } else if (isMultiAudio) {
+              audioBadge = '🌐 Multi-Language';
+              language = 'Multi-Language';
+            }
+
+            const firstLine = rawTitle.split('\n')[0].replace(/[\.[\]]/g, ' ').trim();
 
             return {
               id: s.infoHash || ('stream-' + idx),
@@ -84,6 +108,7 @@ async function fetchTorrentioStreams(imdbId, type = 'movie', season = 1, episode
               fileIdx: s.fileIdx !== undefined ? s.fileIdx : 0,
               quality,
               audioBadge,
+              language,
               isHindi: isHindi || isDualAudio,
               seeders,
               size,

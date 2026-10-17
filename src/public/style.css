@@ -542,10 +542,11 @@ body.netflix-body {
   display: flex;
   gap: 14px;
   overflow-x: auto;
+  overflow-y: visible;
   scroll-behavior: smooth;
   scrollbar-width: none;
-  padding: 24px 4px;
-  margin: -24px -4px;
+  padding: 32px 8px 36px 8px;
+  margin: -32px -8px -36px -8px;
 }
 
 .cards-carousel::-webkit-scrollbar {
@@ -595,28 +596,29 @@ body.netflix-body {
   background: linear-gradient(270deg, rgba(14, 14, 14, 0.85) 0%, rgba(14, 14, 14, 0.4) 60%, transparent 100%);
 }
 
-/* Standard Movie Card */
+/* Standard Movie Card - Optimized Proportions & Smooth Hover */
 .netflix-card {
   position: relative;
-  flex: 0 0 calc((100% - 70px) / 6);
-  min-width: 190px;
-  max-width: 260px;
-  border-radius: 4px;
+  flex: 0 0 185px;
+  min-width: 175px;
+  max-width: 195px;
+  border-radius: 6px;
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.3s cubic-bezier(0.2, 0, 0.2, 1), box-shadow 0.3s ease;
-  background-color: var(--netflix-card-bg);
+  transform-origin: center center;
+  transition: transform 0.28s cubic-bezier(0.2, 0, 0.2, 1), box-shadow 0.28s ease;
+  background-color: #181818;
 }
 
 .netflix-card:hover {
-  transform: scale(1.18);
+  transform: scale(1.09) translateY(-6px);
   z-index: 25;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.95);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.95), 0 0 16px rgba(229, 9, 20, 0.35);
 }
 
 .card-poster {
   width: 100%;
-  aspect-ratio: 2 / 3;
+  height: 250px;
   background-size: cover;
   background-position: center;
   position: relative;
@@ -643,6 +645,7 @@ body.netflix-body {
 .card-info-pane {
   padding: 10px 12px 14px;
   background-color: #181818;
+  box-sizing: border-box;
 }
 
 .card-btn-row {
@@ -698,6 +701,7 @@ body.netflix-body {
   overflow: hidden;
   text-overflow: ellipsis;
   margin-bottom: 4px;
+  line-height: 1.25;
 }
 
 .card-meta-line {
@@ -706,6 +710,7 @@ body.netflix-body {
   gap: 6px;
   font-size: 0.72rem;
   margin-bottom: 4px;
+  line-height: 1.2;
 }
 
 .card-genre-tags {
@@ -714,6 +719,7 @@ body.netflix-body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 1.25;
 }
 
 /* ==========================================
@@ -2477,4 +2483,105 @@ body.netflix-body {
   padding: 60px 0;
   color: var(--netflix-subtext);
   font-size: 0.95rem;
+}
+
+
+/* ===================================================
+   STREAMIO / TORRENT PLAYER AUDIO & STREAM CONTROLS
+   =================================================== */
+.audio-lang-selector-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 6px;
+  padding: 4px 10px;
+  transition: all 0.2s ease;
+}
+
+.audio-lang-selector-wrap:hover {
+  border-color: rgba(229, 9, 20, 0.6);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.lang-selector-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--netflix-red);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.language-select-dropdown {
+  background: transparent;
+  color: #ffffff;
+  border: none;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+  padding: 3px 6px;
+  max-width: 250px;
+}
+
+.language-select-dropdown option {
+  background: #181818;
+  color: #ffffff;
+  padding: 8px;
+}
+
+.streams-drawer-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(229, 9, 20, 0.15);
+  border: 1px solid var(--netflix-red);
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.streams-drawer-btn:hover {
+  background: var(--netflix-red);
+  box-shadow: 0 0 14px rgba(229, 9, 20, 0.5);
+}
+
+.torrent-loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 10, 0.92);
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  z-index: 10;
+  transition: opacity 0.3s ease;
+}
+
+.torrent-loading-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loading-stream-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-align: center;
+}
+
+.loading-stream-sub {
+  font-size: 0.85rem;
+  color: #a3a3a3;
+  text-align: center;
 }

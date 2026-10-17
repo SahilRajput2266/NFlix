@@ -6,3 +6,4 @@ fix-*.js
 update-*.js
 test-*.js
 secure-iframe.js
+storage/torrent-cache/

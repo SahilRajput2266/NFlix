@@ -934,3 +934,220 @@ function escapeHtml(str) {
 
 // Initial Catalog Load
 loadNetflixCatalog();
+
+
+// ===================================================
+// STREMIO / TORRENT P2P STREAMING CONTROLLER
+// ===================================================
+
+let currentTorrentStreams = [];
+let currentActiveInfoHash = null;
+let torrentStatsInterval = null;
+
+window.toggleTorrentStreamMode = function() {
+  const drawer = document.getElementById('torrentStreamsDrawer');
+  if (drawer.style.display === 'flex') {
+    closeTorrentStreamsDrawer();
+  } else {
+    openTorrentStreamsDrawer();
+  }
+};
+
+window.openTorrentStreamsDrawer = function() {
+  if (!currentActiveMovie) return;
+  const drawer = document.getElementById('torrentStreamsDrawer');
+  if (!drawer) return;
+
+  drawer.style.display = 'flex';
+  const toggleBtn = document.getElementById('toggleTorrentModeBtn');
+  if (toggleBtn) toggleBtn.classList.add('active');
+
+  const rawId = currentActiveMovie.tmdbId || currentActiveMovie.id;
+  const isDirectImdb = String(rawId).startsWith('tt');
+  const realImdb = isDirectImdb ? String(rawId) : (currentActiveMovie.imdbId || '');
+  const isTv = currentActiveMovie.type === 'tv' || !!currentActiveMovie.seasons;
+
+  if (!realImdb || !String(realImdb).startsWith('tt')) {
+    // If IMDb ID not yet loaded, enrich first
+    const tmdbId = String(rawId).replace(/^tt/, '');
+    fetch('/api/catalog/' + (isTv ? 'tv' : 'movie') + '/' + tmdbId)
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && d.movie && d.movie.imdbId) {
+          currentActiveMovie.imdbId = d.movie.imdbId;
+          loadTorrentStreams(d.movie.imdbId, isTv ? 'tv' : 'movie', currentSeasonNum, currentEpisodeNum);
+        } else {
+          showTorrentEmptyState('No IMDb ID mapped for this title.');
+        }
+      })
+      .catch(() => showTorrentEmptyState('Failed to resolve IMDb ID.'));
+  } else {
+    loadTorrentStreams(realImdb, isTv ? 'tv' : 'movie', currentSeasonNum, currentEpisodeNum);
+  }
+};
+
+window.closeTorrentStreamsDrawer = function() {
+  const drawer = document.getElementById('torrentStreamsDrawer');
+  if (drawer) drawer.style.display = 'none';
+  const toggleBtn = document.getElementById('toggleTorrentModeBtn');
+  if (toggleBtn) toggleBtn.classList.remove('active');
+};
+
+async function loadTorrentStreams(imdbId, type, season, episode) {
+  const listContainer = document.getElementById('torrentStreamsList');
+  if (!listContainer) return;
+
+  listContainer.innerHTML = `
+    <div class="torrent-loading-state">
+      <div class="netflix-spinner"></div>
+      <span>Querying Stremio DHT Torrent Swarms for "${escapeHtml(currentActiveMovie.title)}"...</span>
+    </div>
+  `;
+
+  try {
+    const res = await fetch(`/api/torrent/streams/${imdbId}?type=${type}&season=${season}&episode=${episode}`);
+    const data = await res.json();
+
+    if (!data.success || !data.streams || data.streams.length === 0) {
+      showTorrentEmptyState('No active torrent streams found. Try Cloud Embed Servers.');
+      return;
+    }
+
+    currentTorrentStreams = data.streams;
+    renderTorrentStreamsList(currentTorrentStreams);
+  } catch (err) {
+    showTorrentEmptyState('Failed to fetch torrent streams: ' + err.message);
+  }
+}
+
+function showTorrentEmptyState(message) {
+  const listContainer = document.getElementById('torrentStreamsList');
+  if (!listContainer) return;
+  listContainer.innerHTML = `
+    <div class="torrent-empty-state">
+      <span>${escapeHtml(message)}</span>
+      <button class="btn-back-cloud" style="margin-top:12px;" onclick="switchToCloudEmbedMode()">Return to Cloud Server</button>
+    </div>
+  `;
+}
+
+function renderTorrentStreamsList(streams) {
+  const listContainer = document.getElementById('torrentStreamsList');
+  if (!listContainer) return;
+
+  if (streams.length === 0) {
+    listContainer.innerHTML = '<div class="torrent-empty-state"><span>No matching streams for this filter.</span></div>';
+    return;
+  }
+
+  listContainer.innerHTML = streams.map(s => {
+    return `
+      <div class="torrent-stream-card ${s.isHindi ? 'is-hindi' : ''}" onclick="playTorrentStream('${s.infoHash}', '${escapeHtml(s.title)}', '${escapeHtml(s.audioBadge)}')">
+        <div class="stream-card-left">
+          <div class="stream-badge-row">
+            <span class="badge-quality">${s.quality}</span>
+            <span class="badge-audio">${s.audioBadge}</span>
+          </div>
+          <div class="stream-file-title" title="${escapeHtml(s.filename)}">${escapeHtml(s.title)}</div>
+          <div class="stream-meta-line">
+            <span class="meta-seeders">&#128101; ${s.seeders} Seeders</span>
+            <span>&#128190; ${s.size || 'Direct'}</span>
+            <span>File: ${escapeHtml(s.filename.slice(0, 35))}...</span>
+          </div>
+        </div>
+        <div class="stream-card-right">
+          <button class="btn-play-torrent">&#9654; Stream Now</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+window.filterTorrentDrawer = function(filterType, btn) {
+  document.querySelectorAll('.drawer-filter-chip').forEach(c => c.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  if (filterType === 'all') {
+    renderTorrentStreamsList(currentTorrentStreams);
+  } else if (filterType === 'hindi') {
+    renderTorrentStreamsList(currentTorrentStreams.filter(s => s.isHindi));
+  } else if (filterType === '1080p') {
+    renderTorrentStreamsList(currentTorrentStreams.filter(s => s.quality.includes('1080p')));
+  } else if (filterType === '4k') {
+    renderTorrentStreamsList(currentTorrentStreams.filter(s => s.quality.includes('4K')));
+  }
+};
+
+window.playTorrentStream = function(infoHash, title, audioBadge) {
+  currentActiveInfoHash = infoHash;
+  closeTorrentStreamsDrawer();
+
+  // Hide cloud iframe, show native video player
+  const cloudIframe = document.getElementById('cloudEmbedIframe');
+  const torrentPlayerWrap = document.getElementById('torrentPlayerContainer');
+  const videoEl = document.getElementById('nativeTorrentVideo');
+  const streamTitleEl = document.getElementById('torrentStreamTitle');
+
+  if (cloudIframe) {
+    cloudIframe.src = 'about:blank';
+    cloudIframe.style.display = 'none';
+  }
+
+  if (torrentPlayerWrap) torrentPlayerWrap.style.display = 'flex';
+  if (streamTitleEl) streamTitleEl.textContent = title + ' (' + audioBadge + ')';
+
+  if (videoEl) {
+    videoEl.src = '/api/torrent/play/' + infoHash;
+    videoEl.load();
+    videoEl.play().catch(e => console.log('Autoplay deferred:', e.message));
+  }
+
+  showToast('Connecting to Torrent Swarm... buffering clean stream.');
+  startTorrentStatsPolling(infoHash);
+};
+
+window.switchToCloudEmbedMode = function() {
+  if (torrentStatsInterval) clearInterval(torrentStatsInterval);
+
+  const torrentPlayerWrap = document.getElementById('torrentPlayerContainer');
+  const videoEl = document.getElementById('nativeTorrentVideo');
+  const cloudIframe = document.getElementById('cloudEmbedIframe');
+
+  if (videoEl) {
+    videoEl.pause();
+    videoEl.removeAttribute('src');
+    videoEl.load();
+  }
+
+  if (torrentPlayerWrap) torrentPlayerWrap.style.display = 'none';
+  closeTorrentStreamsDrawer();
+
+  if (cloudIframe) {
+    cloudIframe.style.display = 'block';
+  }
+
+  const srv = SERVERS_ORDER[currentServerIndex] || SERVERS_ORDER[0];
+  switchEmbedServer(srv.id);
+  showToast('Switched back to Cloud Embed Server.');
+};
+
+function startTorrentStatsPolling(infoHash) {
+  if (torrentStatsInterval) clearInterval(torrentStatsInterval);
+
+  const speedPill = document.getElementById('torrentSpeedPill');
+  const peersPill = document.getElementById('torrentPeersPill');
+
+  torrentStatsInterval = setInterval(async () => {
+    if (!currentActiveInfoHash || document.getElementById('torrentPlayerContainer').style.display === 'none') {
+      clearInterval(torrentStatsInterval);
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/torrent/stats/' + infoHash);
+      const data = await res.json();
+      if (speedPill) speedPill.textContent = '⚡ ' + data.speedKBps + ' KB/s';
+      if (peersPill) peersPill.textContent = '👥 ' + data.peers + ' Peers';
+    } catch (e) {}
+  }, 2000);
+}

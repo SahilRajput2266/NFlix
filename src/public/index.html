@@ -258,6 +258,7 @@
 
         <div class="topbar-right">
           <!-- Dedicated Hindi Audio Switcher Button -->
+          <button id="toggleTorrentModeBtn" class="torrent-mode-toggle-btn" onclick="toggleTorrentStreamMode()" title="Switch to Open Stremio/Torrent P2P Streams with Dual Audio">&#9889; Stremio Mode</button>
           <button id="playerHindiBtn" class="hindi-audio-btn" onclick="switchEmbedServer('multiembed')" title="1-Click Switch to Hindi Dubbed / Multi-Audio">
             &#127470;&#127475; Hindi Audio
           </button>
@@ -292,6 +293,49 @@
 
       <!-- Video Canvas Container (NO SANDBOX: Allows clean video decoding without "Playback blocked") -->
       <div class="theater-canvas-wrap">
+        
+        <!-- Native Torrent / Stremio Video Player & Swarm HUD -->
+        <div id="torrentPlayerContainer" class="torrent-player-container" style="display:none;">
+          <div class="torrent-swarm-hud">
+            <div class="hud-left">
+              <span class="hud-live-pulse"></span>
+              <span id="torrentStreamTitle" class="hud-stream-title">Avengers Endgame 1080p Dual Audio</span>
+            </div>
+            <div class="hud-right">
+              <span class="hud-stat-pill" id="torrentSpeedPill">&#9889; 0.0 KB/s</span>
+              <span class="hud-stat-pill" id="torrentPeersPill">&#128101; 0 Peers</span>
+              <button class="btn-change-stream" onclick="openTorrentStreamsDrawer()">&#8644; Change Stream</button>
+              <button class="btn-back-cloud" onclick="switchToCloudEmbedMode()">&#9729; Back to Cloud Embed</button>
+            </div>
+          </div>
+          <video id="nativeTorrentVideo" class="native-torrent-video" controls autoplay playsinline controlsList="nodownload"></video>
+        </div>
+
+        <!-- Torrent Streams Selection Drawer (Stremio Mode) -->
+        <div id="torrentStreamsDrawer" class="torrent-drawer" style="display:none;">
+          <div class="drawer-header">
+            <div class="drawer-header-left">
+              <div class="drawer-title">&#9889; Stremio / Torrentio P2P Streams</div>
+              <div class="drawer-subtitle">Select a clean ad-free stream with Dual Audio (Hindi / English)</div>
+            </div>
+            <button class="drawer-close-btn" onclick="closeTorrentStreamsDrawer()">&times;</button>
+          </div>
+
+          <div class="drawer-filter-bar">
+            <button class="drawer-filter-chip active" onclick="filterTorrentDrawer('all', this)">All Streams</button>
+            <button class="drawer-filter-chip" onclick="filterTorrentDrawer('hindi', this)">&#127470;&#127475; Hindi Dubbed</button>
+            <button class="drawer-filter-chip" onclick="filterTorrentDrawer('1080p', this)">1080p FHD</button>
+            <button class="drawer-filter-chip" onclick="filterTorrentDrawer('4k', this)">4K Ultra HD</button>
+          </div>
+
+          <div id="torrentStreamsList" class="drawer-streams-list">
+            <div class="torrent-loading-state">
+              <div class="netflix-spinner"></div>
+              <span>Searching open DHT torrent swarms via Torrentio...</span>
+            </div>
+          </div>
+        </div>
+
         <iframe id="cloudEmbedIframe"
           allowfullscreen="true"
           referrerpolicy="origin"

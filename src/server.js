@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const config = require('./config');
 const videoRoutes = require('./routes/videoRoutes');
+const torrentRoutes = require('./routes/torrentRoutes');
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use('/storage/hls', (req, res, next) => {
 }, express.static(config.HLS_OUTPUT_DIR));
 
 app.use('/api/videos', videoRoutes);
+app.use('/api/torrent', torrentRoutes);
 app.use('/api/catalog', require('./routes/catalogRoutes'));
 
 app.get('/api/health', (req, res) => {

@@ -1,0 +1,187 @@
+const https = require('https');
+const path = require('path');
+const fs = require('fs');
+const torrentStream = require('torrent-stream');
+
+const TORRENT_CACHE_DIR = path.resolve(__dirname, '../../storage/torrent-cache');
+if (!fs.existsSync(TORRENT_CACHE_DIR)) {
+  fs.mkdirSync(TORRENT_CACHE_DIR, { recursive: true });
+}
+
+// Map of active torrent engines: infoHash -> { engine, lastAccess, file, ready }
+const activeEngines = new Map();
+
+const DEFAULT_TRACKERS = [
+  'udp://tracker.opentrackr.org:1337/announce',
+  'udp://open.stealth.si:80/announce',
+  'udp://tracker.torrent.eu.org:451/announce',
+  'udp://open.demonii.com:1337/announce',
+  'udp://exodus.desync.com:6969/announce',
+  'udp://tracker.qu.ax:6969/announce',
+  'udp://tracker.nyaa.vc:6969/announce',
+  'udp://explodie.org:6969/announce',
+  'udp://tracker.corpscorp.online:80/announce'
+];
+
+/**
+ * Fetch available torrent streams for a movie or TV show using open Stremio protocol (Torrentio)
+ */
+async function fetchTorrentioStreams(imdbId, type = 'movie', season = 1, episode = 1) {
+  return new Promise((resolve) => {
+    let cleanImdb = String(imdbId).trim();
+    if (!cleanImdb.startsWith('tt')) {
+      cleanImdb = 'tt' + cleanImdb;
+    }
+
+    const endpoint = type === 'tv'
+      ? 'https://torrentio.strem.fun/stream/series/' + cleanImdb + ':' + season + ':' + episode + '.json'
+      : 'https://torrentio.strem.fun/stream/movie/' + cleanImdb + '.json';
+
+    https.get(endpoint, { timeout: 8000 }, (res) => {
+      let rawData = '';
+      res.on('data', chunk => rawData += chunk);
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(rawData);
+          if (!json.streams || !Array.isArray(json.streams)) {
+            return resolve([]);
+          }
+
+          const parsed = json.streams.map((s, idx) => {
+            const rawTitle = s.title || '';
+            const nameLine = s.name || '';
+            
+            const seedersMatch = rawTitle.match(/👤\s*(\d+)/);
+            const seeders = seedersMatch ? parseInt(seedersMatch[1], 10) : 0;
+
+            const sizeMatch = rawTitle.match(/💾\s*([\d\.]+\s*[GM]B)/i);
+            const size = sizeMatch ? sizeMatch[1] : '';
+
+            let quality = '1080p FHD';
+            if (/4k|2160p|uhd/i.test(nameLine + rawTitle)) quality = '4K Ultra HD';
+            else if (/1080p/i.test(nameLine + rawTitle)) quality = '1080p FHD';
+            else if (/720p/i.test(nameLine + rawTitle)) quality = '720p HD';
+
+            const isHindi = /hindi|hin\b/i.test(rawTitle);
+            const isDualAudio = /dual[\s\-_.]*audio/i.test(rawTitle);
+            const isMultiAudio = /multi[\s\-_.]*audio|multi/i.test(rawTitle);
+            const isTelugu = /telugu/i.test(rawTitle);
+            const isTamil = /tamil/i.test(rawTitle);
+
+            let audioBadge = 'English';
+            if (isHindi && isDualAudio) audioBadge = '🇮🇳 Hindi + English Dual Audio';
+            else if (isHindi) audioBadge = '🇮🇳 Hindi Dubbed';
+            else if (isDualAudio) audioBadge = '🎧 Dual Audio';
+            else if (isMultiAudio) audioBadge = '🌐 Multi-Language';
+            else if (isTelugu) audioBadge = 'Telugu Audio';
+            else if (isTamil) audioBadge = 'Tamil Audio';
+
+            const firstLine = rawTitle.split('\n')[0].replace(/[\.\[\]]/g, ' ').trim();
+
+            return {
+              id: s.infoHash || ('stream-' + idx),
+              infoHash: s.infoHash,
+              fileIdx: s.fileIdx !== undefined ? s.fileIdx : 0,
+              quality,
+              audioBadge,
+              isHindi: isHindi || isDualAudio,
+              seeders,
+              size,
+              title: firstLine,
+              filename: (s.behaviorHints && s.behaviorHints.filename) || firstLine,
+              sources: s.sources || []
+            };
+          });
+
+          // Sort: Hindi/Dual audio first, then highest seeders
+          parsed.sort((a, b) => {
+            if (a.isHindi && !b.isHindi) return -1;
+            if (!a.isHindi && b.isHindi) return 1;
+            return b.seeders - a.seeders;
+          });
+
+          resolve(parsed);
+        } catch (e) {
+          console.error('Torrentio JSON parse error:', e.message);
+          resolve([]);
+        }
+      });
+    }).on('error', (err) => {
+      console.error('Torrentio request error:', err.message);
+      resolve([]);
+    });
+  });
+}
+
+function isVideoFile(name) {
+  return /\.(mp4|mkv|webm|avi|mov|m4v)$/i.test(name);
+}
+
+function getOrCreateTorrentEngine(infoHash, customTrackers = []) {
+  const hash = String(infoHash).toLowerCase().trim();
+
+  if (activeEngines.has(hash)) {
+    const entry = activeEngines.get(hash);
+    entry.lastAccess = Date.now();
+    return entry;
+  }
+
+  const magnetUri = 'magnet:?xt=urn:btih:' + hash + '&tr=' + DEFAULT_TRACKERS.concat(customTrackers).join('&tr=');
+
+  const engine = torrentStream(magnetUri, {
+    connections: 60,
+    uploads: 1,
+    tmp: TORRENT_CACHE_DIR,
+    trackers: DEFAULT_TRACKERS
+  });
+
+  const entry = {
+    infoHash: hash,
+    engine,
+    file: null,
+    ready: false,
+    lastAccess: Date.now()
+  };
+
+  engine.on('ready', () => {
+    let maxFile = null;
+    let maxLen = 0;
+
+    engine.files.forEach(file => {
+      if (file.length > maxLen && isVideoFile(file.name)) {
+        maxFile = file;
+        maxLen = file.length;
+      }
+    });
+
+    if (maxFile) {
+      entry.file = maxFile;
+      entry.ready = true;
+      engine.files.forEach(f => {
+        if (f !== maxFile) f.deselect();
+      });
+      maxFile.select();
+      console.log('[TorrentEngine] Ready to stream:', maxFile.name, (maxFile.length / (1024 * 1024)).toFixed(1), 'MB');
+    }
+  });
+
+  activeEngines.set(hash, entry);
+  return entry;
+}
+
+// Inactive engine cleanup
+setInterval(() => {
+  const now = Date.now();
+  for (const [hash, entry] of activeEngines.entries()) {
+    if (now - entry.lastAccess > 25 * 60 * 1000) {
+      console.log('[TorrentEngine] Destroying idle engine:', hash);
+      try { entry.engine.destroy(); } catch (e) {}
+      activeEngines.delete(hash);
+    }
+  }
+}, 5 * 60 * 1000);
+
+module.exports = {
+  fetchTorrentioStreams,
+  getOrCreateTorrentEngine
+};

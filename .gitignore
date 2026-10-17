@@ -1,0 +1,8 @@
+node_modules/
+storage/hls/
+storage/raw/
+*.log
+fix-*.js
+update-*.js
+test-*.js
+secure-iframe.js

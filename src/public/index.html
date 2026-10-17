@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Netflix - Watch Movies Online, Stream Blockbusters</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="netflix-body">
+
+  <!-- Netflix Top Navigation Bar -->
+  <header class="netflix-header" id="netflixHeader">
+    <div class="nav-left">
+      <div class="netflix-brand" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+        <span class="brand-text">NETFLIX</span>
+      </div>
+      <nav class="netflix-nav-links">
+        <a href="#heroSection" class="nav-link active">Home</a>
+        <a href="#row-latest" class="nav-link">Latest Releases</a>
+        <a href="#row-top10" class="nav-link">Top 10 Today</a>
+        <a href="#row-action" class="nav-link">Action &amp; Blockbusters</a>
+        <a href="#row-scifi" class="nav-link">Sci-Fi</a>
+        <a href="#continueRow" class="nav-link" id="navMyList">My List</a>
+      </nav>
+    </div>
+
+    <div class="nav-right">
+      <div class="search-box-wrap">
+        <button class="search-toggle-btn" id="searchToggleBtn" title="Search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </button>
+        <input type="text" id="movieSearchInput" class="search-input" placeholder="Search movies, actors, or IMDb ID..." autocomplete="off">
+        <div id="searchDropdown" class="search-results-dropdown"></div>
+      </div>
+
+      <div class="nav-icon-btn" title="Notifications">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+      </div>
+
+      <div class="netflix-profile" title="Account">
+        <div class="profile-avatar">
+          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80" alt="Profile">
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Netflix Hero Billboard -->
+  <section id="heroSection" class="hero-billboard">
+    <div class="hero-backdrop" id="heroBackdrop"></div>
+    <div class="hero-vignette"></div>
+    <div class="hero-bottom-fade"></div>
+
+    <div class="hero-content">
+      <div class="hero-badge-row">
+        <span class="n-series-badge"><span class="n-red">N</span> FILM</span>
+        <span class="hero-trending-rank">#1 IN MOVIES TODAY</span>
+      </div>
+
+      <h1 class="hero-title" id="heroTitle">LOADING FEATURED...</h1>
+
+      <div class="hero-metadata">
+        <span class="match-score">99% Match</span>
+        <span class="maturity-rating">U/A 16+</span>
+        <span class="hero-duration" id="heroDuration">2h 15m</span>
+        <span class="quality-badge">4K Ultra HD</span>
+        <span class="audio-badge">5.1 Audio</span>
+        <span class="hero-genre" id="heroGenre">Action / Adventure</span>
+      </div>
+
+      <p class="hero-synopsis" id="heroSynopsis">
+        Streaming in 4K Ultra HD with TMDB live cloud synchronization.
+      </p>
+
+      <div class="hero-actions">
+        <button id="heroPlayBtn" class="btn btn-netflix-play">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          Play
+        </button>
+        <button id="heroInfoBtn" class="btn btn-netflix-info">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          More Info
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Netflix Catalog Rows Container -->
+  <main class="netflix-rows-container">
+    
+    <!-- Dynamic Category Rows (Populated by live TMDB modular service) -->
+    <div id="categoriesContainer">
+      <div class="loading-spinner-wrap">
+        <div class="netflix-spinner"></div>
+        <span>Connecting to TMDB Official API...</span>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Netflix Footer -->
+  <footer class="netflix-footer">
+    <div class="footer-links">
+      <span>Audio Description</span>
+      <span>Help Centre</span>
+      <span>Gift Cards</span>
+      <span>Media Centre</span>
+      <span>Investor Relations</span>
+      <span>Jobs</span>
+      <span>Terms of Use</span>
+      <span>Privacy Policy</span>
+      <span>Cookie Preferences</span>
+      <span>Corporate Information</span>
+      <span>Contact Us</span>
+    </div>
+    <div class="footer-service-code">
+      <button class="service-code-btn">Service Code: 982-104</button>
+    </div>
+    <p class="footer-copy">&copy; 2024-2025 Netflix, Inc. &bull; Powered by TMDB API Cloud Synchronization</p>
+  </footer>
+
+  <!-- ===================================================
+       1. NETFLIX MOVIE INFORMATION PAGE / MODAL
+       =================================================== -->
+  <div id="movieDetailModal" class="modal-backdrop">
+    <div class="movie-detail-dialog">
+      
+      <!-- Top Backdrop Banner -->
+      <div class="detail-hero-banner" id="detailBackdrop">
+        <button id="closeDetailBtn" class="btn-circle-close detail-close-btn" title="Close Details">&times;</button>
+        <div class="detail-banner-vignette"></div>
+        
+        <div class="detail-banner-content">
+          <div class="detail-badge-tag"><span class="n-red">N</span> FILM</div>
+          <h2 id="detailTitle" class="detail-movie-title">Movie Title</h2>
+          <div class="detail-tagline" id="detailTagline"></div>
+          
+          <!-- Primary Actions inside Detail Page: Play and Download! -->
+          <div class="detail-actions-row">
+            <button id="detailPlayBtn" class="btn btn-netflix-play">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              Play Now
+            </button>
+            <button id="detailDownloadBtn" class="btn btn-netflix-download">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Download
+            </button>
+            <button class="btn-circle-action" title="Add to List">+</button>
+            <button class="btn-circle-action" title="Rate">👍</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detail Body (2-column layout) -->
+      <div class="detail-body-container">
+        
+        <!-- Left Side: Metadata & Story -->
+        <div class="detail-main-info">
+          <div class="detail-meta-row">
+            <span class="match-score" id="detailMatchScore">98% Match</span>
+            <span class="detail-year" id="detailYear">2024</span>
+            <span class="maturity-rating" id="detailMaturity">U/A 16+</span>
+            <span class="detail-runtime" id="detailRuntime">2h 15m</span>
+            <span class="quality-badge">4K Ultra HD</span>
+            <span class="audio-badge">Dolby Atmos</span>
+          </div>
+
+          <p class="detail-overview" id="detailOverview">
+            Plot summary loading...
+          </p>
+
+          <!-- Interactive Download Drawer -->
+          <div id="downloadDrawer" class="download-options-drawer" style="display:none;">
+            <div class="drawer-header">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <span>Download Movie Mirrors (Offline Playback)</span>
+            </div>
+            <div class="download-links-list" id="downloadLinksList"></div>
+          </div>
+        </div>
+
+        <!-- Right Side: Cast, Director, Genres -->
+        <div class="detail-side-info">
+          <div class="side-info-group">
+            <span class="side-label">Cast:</span>
+            <span class="side-value" id="detailCast">Loading cast...</span>
+          </div>
+          <div class="side-info-group">
+            <span class="side-label">Director:</span>
+            <span class="side-value" id="detailDirector">Loading director...</span>
+          </div>
+          <div class="side-info-group">
+            <span class="side-label">Genres:</span>
+            <span class="side-value" id="detailGenres">Action, Drama</span>
+          </div>
+          <div class="side-info-group">
+            <span class="side-label">Audio &amp; Subtitles:</span>
+            <span class="side-value">English [Original], Hindi, Spanish, Multi-Subtitles</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================================================
+       2. NETFLIX THEATER VIDEO PLAYER MODAL
+       =================================================== -->
+  <div id="playerModal" class="modal-backdrop">
+    <div class="netflix-theater-modal">
+      
+      <!-- Top Bar of Theater -->
+      <div class="theater-topbar">
+        <div class="topbar-left">
+          <div class="theater-brand-badge">
+            <span class="n-red">N</span> FILM
+          </div>
+          <div class="theater-title-info">
+            <h3 id="playerTitle" class="theater-movie-title">Movie Title</h3>
+            <span id="playerMeta" class="theater-movie-sub">2024 &bull; 4K Ultra HD &bull; Multi-Audio</span>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <!-- Server Switcher Pills -->
+          <div class="stream-servers-pillbox" id="serversPillbox">
+            <span class="server-label">SERVER:</span>
+            <button class="server-pill active" id="srvBtn2Embed" onclick="switchEmbedServer('2embed', this)">🍿 Server 1 (2Embed Multi)</button>
+            <button class="server-pill" id="srvBtnVidLink" onclick="switchEmbedServer('vidlink', this)">⚡ Server 2 (VidLink Pro)</button>
+            <button class="server-pill" id="srvBtnMulti" onclick="switchEmbedServer('multiembed', this)">🇮🇳 Server 3 (MultiEmbed Hindi)</button>
+            <button class="server-pill" id="srvBtnEmbedSu" onclick="switchEmbedServer('embedsu', this)">🚀 Server 4 (Embed.su)</button>
+            <button class="server-pill" id="srvBtnSmashy" onclick="switchEmbedServer('smashy', this)">💥 Server 5 (SmashyStream)</button>
+            <button class="server-pill" id="srvBtnAuto" onclick="switchEmbedServer('autoembed', this)">🎬 Server 6 (AutoEmbed FHD)</button>
+            <button class="server-pill" id="srvBtnVidSrc" onclick="switchEmbedServer('vidsrcto', this)">🌐 Server 7 (VidSrc)</button>
+            <button class="server-pill" id="srvBtnVidSrcMe" onclick="switchEmbedServer('vidsrcme', this)">📽️ Server 8 (VidSrc.me)</button>
+          </div>
+
+          <button id="openCinemaTabBtn" class="cinema-tab-btn" onclick="openDirectCinemaWindow()" title="Open clean full screen in isolated cinema window">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            Cinema Window
+          </button>
+
+          <button id="closePlayerBtn" class="netflix-close-btn" title="Back to Movie">&times;</button>
+        </div>
+      </div>
+
+      <!-- Video Canvas Container (NO SANDBOX: Allows clean video decoding without "Playback blocked") -->
+      <div class="theater-canvas-wrap">
+        <iframe id="cloudEmbedIframe"
+          allowfullscreen="true"
+          referrerpolicy="origin"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          class="theater-iframe">
+        </iframe>
+
+        <!-- Bottom Protection Strip -->
+        <div class="player-protection-strip">
+          <div class="strip-left">
+            <span class="shield-dot"></span>
+            <span class="shield-text"><strong>Live Stream Active:</strong> Multi-Server Cloud Aggregator (4K / 1080p FHD)</span>
+          </div>
+          <div class="strip-right">
+            <span>Switch servers above if needed &bull; Click <strong>Cinema Window</strong> for fullscreen tab</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <script src="cloudStream.js"></script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+[
+  {
+    "videoId": "drm-encrypted-stream",
+    "title": "Blade Runner 2049 (AES-128 DRM)",
+    "originalName": "sample-test.mp4",
+    "rawFilePath": "C:\\\\Users\\\\admin\\\\Documents\\\\GitHub\\\\distributed-stream\\\\storage\\\\raw\\\\sample-test.mp4",
+    "sizeBytes": 111213,
+    "status": "ready",
+    "progress": 100,
+    "message": "Processing complete. Stream is AES-128 DRM protected.",
+    "createdAt": "2026-10-17T05:31:27.330Z",
+    "updatedAt": "2026-10-17T05:31:27.331Z",
+    "error": null,
+    "currentProfile": "720p",
+    "profilePercent": 100,
+    "masterPlaylist": "/storage/hls/drm-encrypted-stream/master.m3u8",
+    "posterUrl": "/storage/hls/drm-encrypted-stream/poster.jpg",
+    "isEncrypted": true,
+    "encryptionMethod": "AES-128-CBC",
+    "profiles": [
+      "360p",
+      "720p"
+    ]
+  },
+  {
+    "videoId": "demo-sample-stream",
+    "title": "Cyberpunk Neon Genesis (Sample)",
+    "originalName": "sample-test.mp4",
+    "rawFilePath": "C:\\Users\\admin\\Documents\\GitHub\\distributed-stream\\storage\\raw\\sample-test.mp4",
+    "sizeBytes": 111213,
+    "status": "ready",
+    "progress": 100,
+    "message": "Processing complete. Ready for adaptive streaming.",
+    "createdAt": "2026-10-17T05:10:02.683Z",
+    "updatedAt": "2026-10-17T05:10:07.839Z",
+    "error": null,
+    "currentProfile": "720p",
+    "profilePercent": 100,
+    "masterPlaylist": "/storage/hls/demo-sample-stream/master.m3u8",
+    "profiles": [
+      "360p",
+      "720p"
+    ],
+    "posterUrl": "/storage/hls/demo-sample-stream/poster.jpg"
+  },
+  {
+    "videoId": "big-buck-bunny-stream",
+    "title": "Big Buck Bunny (Blender Open Movie)",
+    "originalName": "big_buck_bunny.mp4",
+    "rawFilePath": "C:\\Users\\admin\\Documents\\GitHub\\distributed-stream\\storage\\raw\\big_buck_bunny.mp4",
+    "sizeBytes": 5518241,
+    "status": "ready",
+    "progress": 100,
+    "assignedWorker": "Worker Node-Alpha",
+    "message": "Processing complete. Stream is AES-128 DRM protected.",
+    "createdAt": "2026-10-17T05:44:36.787Z",
+    "updatedAt": "2026-10-17T05:44:43.235Z",
+    "error": null,
+    "currentProfile": "360p",
+    "profilePercent": 100,
+    "masterPlaylist": "/storage/hls/big-buck-bunny-stream/master.m3u8",
+    "posterUrl": "/storage/hls/big-buck-bunny-stream/poster.jpg",
+    "duration": 60,
+    "isEncrypted": true,
+    "encryptionMethod": "AES-128-CBC",
+    "encryptionIv": "dc106a7b2c548ac663edac4481c17dcb",
+    "profiles": [
+      "360p"
+    ]
+  }
+]

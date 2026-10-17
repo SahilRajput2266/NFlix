@@ -784,11 +784,8 @@ movieDetailModal.addEventListener('click', (e) => {
   }
 });
 
-playerModal.addEventListener('click', (e) => {
-  if (e.target === playerModal) {
-    closePlayerBtn.click();
-  }
-});
+// NOTE: Backdrop click intentionally disabled for playerModal so clicking sides does NOT close the video
+// Video player can ONLY be closed by clicking the explicit close button (#closePlayerBtn)
 
 trailerModal.addEventListener('click', (e) => {
   if (e.target === trailerModal) {

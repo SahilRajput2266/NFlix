@@ -1254,18 +1254,33 @@ body.netflix-body {
 }
 
 .netflix-close-btn {
-  background: none;
-  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: #ffffff;
-  font-size: 2rem;
-  cursor: pointer;
-  padding: 0 4px;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  min-height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
   line-height: 1;
-  transition: opacity 0.2s;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.2, 0, 0.2, 1);
+  flex-shrink: 0;
+  padding: 0;
+  z-index: 50;
+  user-select: none;
 }
 
 .netflix-close-btn:hover {
-  opacity: 0.7;
+  background: var(--netflix-red);
+  border-color: var(--netflix-red);
+  transform: scale(1.08);
+  box-shadow: 0 0 14px rgba(229, 9, 20, 0.6);
+  opacity: 1;
 }
 
 .theater-canvas-wrap {
@@ -1566,13 +1581,16 @@ body.netflix-body {
   }
   .theater-topbar {
     height: auto !important;
-    min-height: 48px;
-    padding: 8px 10px !important;
+    min-height: 52px !important;
+    padding: 10px 12px !important;
     display: flex !important;
     flex-wrap: wrap !important;
-    gap: 6px !important;
+    align-items: center !important;
     justify-content: space-between !important;
     background-color: #111111 !important;
+    gap: 8px !important;
+    position: relative !important;
+    z-index: 60 !important;
   }
   .topbar-left {
     display: flex !important;
@@ -1580,10 +1598,12 @@ body.netflix-body {
     gap: 8px !important;
     flex: 1 1 auto !important;
     min-width: 0 !important;
+    max-width: calc(100% - 50px) !important;
+    order: 1 !important;
   }
   .theater-movie-title {
-    font-size: 0.9rem !important;
-    max-width: 160px !important;
+    font-size: 0.95rem !important;
+    max-width: 170px !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
@@ -1593,43 +1613,58 @@ body.netflix-body {
     white-space: nowrap !important;
   }
   .netflix-close-btn {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
     font-size: 1.8rem !important;
-    padding: 0 4px !important;
+    background: rgba(255, 255, 255, 0.16) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     margin-left: auto !important;
+    order: 2 !important;
+    flex-shrink: 0 !important;
+    cursor: pointer !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+  .netflix-close-btn:active {
+    background: var(--netflix-red) !important;
+    border-color: var(--netflix-red) !important;
+    transform: scale(0.92) !important;
   }
   .topbar-right {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
     width: 100% !important;
-    gap: 6px !important;
-    padding-top: 4px !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+    gap: 8px !important;
+    padding-top: 8px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+    order: 3 !important;
   }
-  .hindi-audio-btn {
-    font-size: 0.72rem !important;
-    padding: 5px 8px !important;
-    flex-shrink: 0 !important;
-  }
-  .server-dropdown-wrap {
-    flex: 1 !important;
+  .audio-lang-selector-wrap {
+    flex: 1 1 auto !important;
     min-width: 0 !important;
+    max-width: calc(100% - 110px) !important;
+    padding: 3px 6px !important;
   }
-  .server-select-dropdown {
+  .language-select-dropdown {
     width: 100% !important;
     max-width: 100% !important;
-    font-size: 0.72rem !important;
-    padding: 5px 6px !important;
-  }
-  .fast-server-btn {
-    font-size: 0.72rem !important;
-    padding: 5px 8px !important;
-    flex-shrink: 0 !important;
+    font-size: 0.75rem !important;
+    text-overflow: ellipsis !important;
+    overflow: hidden !important;
     white-space: nowrap !important;
   }
-  .cinema-tab-btn {
-    display: none !important; /* redundant on mobile full screen */
+  .streams-drawer-btn {
+    flex-shrink: 0 !important;
+    padding: 6px 12px !important;
+    font-size: 0.75rem !important;
   }
+
   .theater-canvas-wrap {
     flex: 1;
     min-height: 0;

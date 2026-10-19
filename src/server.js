@@ -45,7 +45,7 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-app.listen(config.PORT, () => {
+app.listen(config.PORT, '0.0.0.0', () => {
   console.log('==================================================');
   console.log(`Distributed Stream Engine running on http://localhost:${config.PORT}`);
   console.log(`HLS Edge Distributor active at /storage/hls`);

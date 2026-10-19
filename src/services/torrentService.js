@@ -144,20 +144,44 @@ function isVideoFile(name) {
   return /\.(mp4|mkv|webm|avi|mov|m4v)$/i.test(name);
 }
 
+function purgeOldTorrentFiles() {
+  try {
+    if (fs.existsSync(TORRENT_CACHE_DIR)) {
+      const items = fs.readdirSync(TORRENT_CACHE_DIR);
+      for (const item of items) {
+        const fullPath = path.join(TORRENT_CACHE_DIR, item);
+        try {
+          fs.rmSync(fullPath, { recursive: true, force: true });
+        } catch (e) {}
+      }
+      console.log('[TorrentEngine] Cleaned disk cache to prevent storage fill-up');
+    }
+  } catch (err) {
+    console.error('[TorrentEngine] Cache purge error:', err.message);
+  }
+}
+
+// Purge any stale cache on startup
+purgeOldTorrentFiles();
+
 function getOrCreateTorrentEngine(infoHash, customTrackers = []) {
   const hash = String(infoHash).toLowerCase().trim();
 
   if (activeEngines.has(hash)) {
     const entry = activeEngines.get(hash);
     entry.lastAccess = Date.now();
+    if (entry.idleTimer) {
+      clearTimeout(entry.idleTimer);
+      entry.idleTimer = null;
+    }
     return entry;
   }
 
   const magnetUri = 'magnet:?xt=urn:btih:' + hash + '&tr=' + DEFAULT_TRACKERS.concat(customTrackers).join('&tr=');
 
   const engine = torrentStream(magnetUri, {
-    connections: 60,
-    uploads: 1,
+    connections: 50,
+    uploads: 0,
     tmp: TORRENT_CACHE_DIR,
     trackers: DEFAULT_TRACKERS
   });
@@ -167,6 +191,8 @@ function getOrCreateTorrentEngine(infoHash, customTrackers = []) {
     engine,
     file: null,
     ready: false,
+    activeReaders: 0,
+    idleTimer: null,
     lastAccess: Date.now()
   };
 
@@ -184,11 +210,11 @@ function getOrCreateTorrentEngine(infoHash, customTrackers = []) {
     if (maxFile) {
       entry.file = maxFile;
       entry.ready = true;
-      engine.files.forEach(f => {
-        if (f !== maxFile) f.deselect();
-      });
-      maxFile.select();
-      console.log('[TorrentEngine] Ready to stream:', maxFile.name, (maxFile.length / (1024 * 1024)).toFixed(1), 'MB');
+      // CRITICAL: Deselect ALL files so torrent-stream DOES NOT download the full 10-50GB movie to disk!
+      // Only bytes requested on-demand by file.createReadStream({start, end}) will be buffered in live memory.
+      engine.files.forEach(f => f.deselect());
+      engine.deselect();
+      console.log('[TorrentEngine] Live streaming ready (On-Demand only):', maxFile.name);
     }
   });
 
@@ -196,19 +222,56 @@ function getOrCreateTorrentEngine(infoHash, customTrackers = []) {
   return entry;
 }
 
-// Inactive engine cleanup
+function releaseTorrentEngine(infoHash) {
+  const hash = String(infoHash).toLowerCase().trim();
+  const entry = activeEngines.get(hash);
+  if (!entry) return;
+
+  entry.activeReaders = Math.max(0, entry.activeReaders - 1);
+  if (entry.activeReaders === 0) {
+    if (entry.idleTimer) clearTimeout(entry.idleTimer);
+    // If no active viewer for 90 seconds, completely delete downloaded torrent chunks from disk
+    entry.idleTimer = setTimeout(() => {
+      console.log('[TorrentEngine] Releasing engine & wiping temp files from disk for:', hash);
+      try {
+        if (typeof entry.engine.remove === 'function') {
+          entry.engine.remove(() => {
+            console.log('[TorrentEngine] Deleted disk files for:', hash);
+          });
+        } else {
+          entry.engine.destroy();
+        }
+      } catch (e) {}
+      activeEngines.delete(hash);
+    }, 90 * 1000);
+  }
+}
+
+// Inactive engine periodic cleanup (Every 3 minutes, remove idle engines and free disk)
 setInterval(() => {
   const now = Date.now();
   for (const [hash, entry] of activeEngines.entries()) {
-    if (now - entry.lastAccess > 25 * 60 * 1000) {
-      console.log('[TorrentEngine] Destroying idle engine:', hash);
-      try { entry.engine.destroy(); } catch (e) {}
+    if (entry.activeReaders === 0 && (now - entry.lastAccess > 3 * 60 * 1000)) {
+      console.log('[TorrentEngine] Idle cleanup - wiping torrent disk files:', hash);
+      try {
+        if (typeof entry.engine.remove === 'function') {
+          entry.engine.remove(() => {});
+        } else {
+          entry.engine.destroy();
+        }
+      } catch (e) {}
       activeEngines.delete(hash);
     }
   }
-}, 5 * 60 * 1000);
+  // If no engines are running, ensure cache directory is clean
+  if (activeEngines.size === 0) {
+    purgeOldTorrentFiles();
+  }
+}, 3 * 60 * 1000);
 
 module.exports = {
   fetchTorrentioStreams,
-  getOrCreateTorrentEngine
+  getOrCreateTorrentEngine,
+  releaseTorrentEngine,
+  purgeOldTorrentFiles
 };

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { fetchTorrentioStreams, getOrCreateTorrentEngine } = require('../services/torrentService');
+const { fetchTorrentioStreams, getOrCreateTorrentEngine, releaseTorrentEngine } = require('../services/torrentService');
 
 /**
  * GET /api/torrent/streams/:imdbId
@@ -35,6 +35,18 @@ router.get('/play/:infoHash', (req, res) => {
   const entry = getOrCreateTorrentEngine(infoHash);
 
   const startStreaming = (file) => {
+    entry.activeReaders++;
+    let released = false;
+    const cleanup = () => {
+      if (!released) {
+        released = true;
+        releaseTorrentEngine(infoHash);
+      }
+    };
+
+    req.on('close', cleanup);
+    res.on('finish', cleanup);
+
     const total = file.length;
     const range = req.headers.range;
 
@@ -60,7 +72,11 @@ router.get('/play/:infoHash', (req, res) => {
       stream.pipe(res);
       stream.on('error', (err) => {
         console.error('[Stream Error]', err.message);
+        cleanup();
         if (!res.headersSent) res.status(500).end();
+      });
+      req.on('close', () => {
+        try { stream.destroy(); } catch (e) {}
       });
     } else {
       res.writeHead(200, {
@@ -74,7 +90,11 @@ router.get('/play/:infoHash', (req, res) => {
       stream.pipe(res);
       stream.on('error', (err) => {
         console.error('[Stream Error]', err.message);
+        cleanup();
         if (!res.headersSent) res.status(500).end();
+      });
+      req.on('close', () => {
+        try { stream.destroy(); } catch (e) {}
       });
     }
   };

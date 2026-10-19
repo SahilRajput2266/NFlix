@@ -13,15 +13,15 @@
   <link rel="stylesheet" href="style.css">
 </head>
 
-<body class="netflix-body">
+<body class="nflix-body">
 
-  <!-- Netflix Top Navigation Bar -->
-  <header class="netflix-header" id="netflixHeader">
+  <!-- NFlix Top Navigation Bar -->
+  <header class="nflix-header" id="nflixHeader">
     <div class="nav-left">
-      <div class="netflix-brand" onclick="window.scrollTo({top:0, behavior:'smooth'})">
-        <span class="brand-text">NETFLIX</span>
+      <div class="nflix-brand" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+        <span class="brand-text">NFLIX</span>
       </div>
-      <nav class="netflix-nav-links">
+      <nav class="nflix-nav-links">
         <a href="#heroSection" class="nav-link active">Home</a>
         <a href="#row-latest" class="nav-link">Latest Releases</a>
         <a href="#row-top10" class="nav-link">Top 10 Today</a>
@@ -51,7 +51,7 @@
         </svg>
       </div>
 
-      <div class="netflix-profile" title="Account">
+      <div class="nflix-profile" title="Account">
         <div class="profile-avatar">
           <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80"
             alt="Profile">
@@ -60,7 +60,7 @@
     </div>
   </header>
 
-  <!-- Netflix Hero Billboard -->
+  <!-- NFlix Hero Billboard -->
   <section id="heroSection" class="hero-billboard">
     <div class="hero-backdrop" id="heroBackdrop"></div>
     <div class="hero-vignette"></div>
@@ -84,17 +84,17 @@
       </div>
 
       <p class="hero-synopsis" id="heroSynopsis">
-        Streaming in 4K Ultra HD with TMDB live cloud synchronization.
+        Streaming in 4K Ultra HD &bull; Instant Cloud Playback
       </p>
 
       <div class="hero-actions">
-        <button id="heroPlayBtn" class="btn btn-netflix-play">
+        <button id="heroPlayBtn" class="btn btn-nflix-play">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
             <polygon points="5 3 19 12 5 21 5 3"></polygon>
           </svg>
           Play
         </button>
-        <button id="heroInfoBtn" class="btn btn-netflix-info">
+        <button id="heroInfoBtn" class="btn btn-nflix-info">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <circle cx="12" cy="12" r="10"></circle>
             <line x1="12" y1="16" x2="12" y2="12"></line>
@@ -106,13 +106,13 @@
     </div>
   </section>
 
-  <!-- Main Netflix Catalog Rows Container -->
-  <main class="netflix-rows-container">
+  <!-- Main NFlix Catalog Rows Container -->
+  <main class="nflix-rows-container">
 
     <!-- User Watchlist Section (My List) -->
-    <section id="myListSection" class="netflix-row" style="display:none;">
+    <section id="myListSection" class="nflix-row" style="display:none;">
       <div class="row-header-wrap">
-        <h2 class="netflix-row-title">⭐ My List</h2>
+        <h2 class="nflix-row-title">⭐ My List</h2>
       </div>
       <div class="row-carousel-wrap">
         <div id="myListGrid" class="cards-carousel"></div>
@@ -122,15 +122,15 @@
     <!-- Dynamic Category Rows (Populated by live TMDB modular service) -->
     <div id="categoriesContainer">
       <div class="loading-spinner-wrap">
-        <div class="netflix-spinner"></div>
-        <span>Connecting to TMDB Official API...</span>
+        <div class="nflix-spinner"></div>
+        <span>Loading NFlix...</span>
       </div>
     </div>
 
   </main>
 
-  <!-- Netflix Footer -->
-  <footer class="netflix-footer">
+  <!-- NFlix Footer -->
+  <footer class="nflix-footer">
     <div class="footer-links">
       <span>Audio Description</span>
       <span>Help Centre</span>
@@ -147,11 +147,11 @@
     <div class="footer-service-code">
       <button class="service-code-btn">Service Code: 982-104</button>
     </div>
-    <p class="footer-copy">&copy; 2024-2025 Netflix, Inc. &bull; Powered by TMDB API Cloud Synchronization</p>
+    <p class="footer-copy">&copy; 2024-2026 NFlix. All rights reserved.</p>
   </footer>
 
   <!-- ===================================================
-       1. NETFLIX MOVIE INFORMATION PAGE / MODAL
+       1. NFLIX MOVIE INFORMATION PAGE / MODAL
        =================================================== -->
   <div id="movieDetailModal" class="modal-backdrop">
     <div class="movie-detail-dialog">
@@ -168,20 +168,20 @@
 
           <!-- Primary Actions inside Detail Page: Play, Trailer, and Download! -->
           <div class="detail-actions-row">
-            <button id="detailPlayBtn" class="btn btn-netflix-play">
+            <button id="detailPlayBtn" class="btn btn-nflix-play">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
                 <polygon points="5 3 19 12 5 21 5 3"></polygon>
               </svg>
               Play Now
             </button>
-            <button id="detailTrailerBtn" class="btn btn-netflix-trailer" style="display:none;"
+            <button id="detailTrailerBtn" class="btn btn-nflix-trailer" style="display:none;"
               title="Watch official trailer">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                 <polygon points="5 3 19 12 5 21 5 3"></polygon>
               </svg>
               Trailer
             </button>
-            <button id="detailDownloadBtn" class="btn btn-netflix-download">
+            <button id="detailDownloadBtn" class="btn btn-nflix-download">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="7 10 12 15 17 10"></polyline>
@@ -264,10 +264,10 @@
   </div>
 
   <!-- ===================================================
-       2. NETFLIX THEATER VIDEO PLAYER MODAL (STREAMIO TORRENT ENGINE)
+       2. NFLIX THEATER VIDEO PLAYER MODAL (STREAMIO TORRENT ENGINE)
        =================================================== -->
   <div id="playerModal" class="modal-backdrop">
-    <div class="netflix-theater-modal">
+    <div class="nflix-theater-modal">
 
       <!-- Top Bar of Theater -->
       <div class="theater-topbar">
@@ -305,7 +305,7 @@
         </div>
 
         <!-- Prominent Dedicated Close Button -->
-        <button id="closePlayerBtn" class="netflix-close-btn" title="Close Video Player"
+        <button id="closePlayerBtn" class="nflix-close-btn" title="Close Video Player"
           aria-label="Close Video Player">&times;</button>
       </div>
 
@@ -332,7 +332,7 @@
 
           <!-- Loading / Connecting Overlay -->
           <div id="torrentLoadingOverlay" class="torrent-loading-overlay">
-            <div class="netflix-spinner"></div>
+            <div class="nflix-spinner"></div>
             <div id="torrentLoadingTitle" class="loading-stream-title">Connecting to Torrent Swarm...</div>
             <div id="torrentLoadingSub" class="loading-stream-sub">Fetching High-Speed P2P Streams & Dual Audio</div>
           </div>
@@ -359,7 +359,7 @@
 
           <div id="torrentStreamsList" class="drawer-streams-list">
             <div class="torrent-loading-state">
-              <div class="netflix-spinner"></div>
+              <div class="nflix-spinner"></div>
               <span>Searching open DHT torrent swarms via Torrentio...</span>
             </div>
           </div>
@@ -374,10 +374,10 @@
        3. OFFICIAL YOUTUBE TRAILER MODAL
        =================================================== -->
   <div id="trailerModal" class="modal-backdrop">
-    <div class="netflix-trailer-dialog">
+    <div class="nflix-trailer-dialog">
       <div class="trailer-header">
         <h3 id="trailerTitle" class="trailer-heading">Official Trailer</h3>
-        <button id="closeTrailerBtn" class="netflix-close-btn" title="Close Trailer">&times;</button>
+        <button id="closeTrailerBtn" class="nflix-close-btn" title="Close Trailer">&times;</button>
       </div>
       <div class="trailer-iframe-wrap">
         <iframe id="trailerIframe" allowfullscreen="true" allow="autoplay; encrypted-media"></iframe>
@@ -386,7 +386,7 @@
   </div>
 
   <!-- Floating Toast Notification -->
-  <div id="netflixToast" class="netflix-toast"></div>
+  <div id="nflixToast" class="nflix-toast"></div>
 
   <script src="cloudStream.js"></script>
 </body>

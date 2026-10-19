@@ -1,4 +1,4 @@
-// Netflix Distributed Stream Engine - Playback & Telemetry Manager
+// NFlix Distributed Stream Engine - Playback & Telemetry Manager
 let hlsInstance = null;
 let activeVideo = null;
 let telemetryInterval = null;
@@ -43,7 +43,7 @@ async function fetchContinueWatching() {
     continueGrid.innerHTML = inProgress.map(v => {
       const pb = v.playback;
       const poster = v.posterUrl || 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80';
-      return '<div class="netflix-card" onclick="openHlsStream(\'' + v.videoId + '\')">' +
+      return '<div class="nflix-card" onclick="openHlsStream(\'' + v.videoId + '\')">' +
         '<div class="card-poster" style="background-image: url(\'' + poster + '\');">' +
           '<div style="position:absolute; bottom:0; left:0; width:100%; height:4px; background:rgba(255,255,255,0.3);">' +
             '<div style="width:' + pb.progressPercent + '%; height:100%; background:#E50914;"></div>' +

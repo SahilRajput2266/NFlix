@@ -1,4 +1,4 @@
-// Netflix Dynamic TMDB Cloud Controller - TV Shows, Episodes, Smart Fallback & Watchlist
+// NFlix Dynamic TMDB Cloud Controller - TV Shows, Episodes, Smart Fallback & Watchlist
 const categoriesContainer = document.getElementById('categoriesContainer');
 const heroBackdrop = document.getElementById('heroBackdrop');
 const heroTitle = document.getElementById('heroTitle');
@@ -51,7 +51,7 @@ const trailerIframe = document.getElementById('trailerIframe');
 const closeTrailerBtn = document.getElementById('closeTrailerBtn');
 
 // Toast & Watchlist Elements
-const netflixToast = document.getElementById('netflixToast');
+const nflixToast = document.getElementById('nflixToast');
 const myListSection = document.getElementById('myListSection');
 const myListGrid = document.getElementById('myListGrid');
 const navMyList = document.getElementById('navMyList');
@@ -59,7 +59,7 @@ const navMyList = document.getElementById('navMyList');
 // Search Bar Elements
 const movieSearchInput = document.getElementById('movieSearchInput');
 const searchDropdown = document.getElementById('searchDropdown');
-const netflixHeader = document.getElementById('netflixHeader');
+const nflixHeader = document.getElementById('nflixHeader');
 
 let currentActiveMovie = null;
 let liveCatalogCache = [];
@@ -82,19 +82,19 @@ const SERVERS_ORDER = [
 // Header Blur on Scroll
 window.addEventListener('scroll', () => {
   if (window.scrollY > 40) {
-    netflixHeader.classList.add('scrolled');
+    nflixHeader.classList.add('scrolled');
   } else {
-    netflixHeader.classList.remove('scrolled');
+    nflixHeader.classList.remove('scrolled');
   }
 });
 
 // Toast Notification Helper
 function showToast(message) {
-  if (!netflixToast) return;
-  netflixToast.textContent = message;
-  netflixToast.classList.add('active');
+  if (!nflixToast) return;
+  nflixToast.textContent = message;
+  nflixToast.classList.add('active');
   setTimeout(() => {
-    netflixToast.classList.remove('active');
+    nflixToast.classList.remove('active');
   }, 2800);
 }
 
@@ -181,7 +181,7 @@ function renderMyList() {
 
   myListSection.style.display = 'block';
   myListGrid.innerHTML = list.map(m => `
-    <div class="netflix-card" data-movie-id="${m.id}" data-media-type="${m.type || 'movie'}" title="${escapeHtml(m.title)}">
+    <div class="nflix-card" data-movie-id="${m.id}" data-media-type="${m.type || 'movie'}" title="${escapeHtml(m.title)}">
       <div class="card-poster" style="background-image: url('${m.poster}');">
         <div class="card-overlay-badges">
           <span class="badge-n-logo">N</span>
@@ -221,13 +221,13 @@ if (navMyList) {
 // ===================================================
 // LOAD LIVE CATALOG FROM TMDB
 // ===================================================
-async function loadNetflixCatalog() {
+async function loadNFlixCatalog() {
   try {
     const res = await fetch('/api/catalog/categories');
     const data = await res.json();
 
     if (!data.success || !data.categories) {
-      categoriesContainer.innerHTML = '<div class="loading-spinner-wrap"><span>Connecting to TMDB Cloud...</span></div>';
+      categoriesContainer.innerHTML = '<div class="loading-spinner-wrap"><div class="nflix-spinner"></div><span>Loading NFlix...</span></div>';
       return;
     }
 
@@ -250,7 +250,7 @@ async function loadNetflixCatalog() {
 
   } catch (err) {
     console.error('Catalog load error:', err);
-    categoriesContainer.innerHTML = '<div class="loading-spinner-wrap"><span>Loading live catalog...</span></div>';
+    categoriesContainer.innerHTML = '<div class="loading-spinner-wrap"><div class="nflix-spinner"></div><span>Loading Movies & Shows...</span></div>';
   }
 }
 
@@ -312,7 +312,7 @@ function renderCategories(categories) {
       cardsHtml = cat.movies.map(m => {
         const isTv = m.type === 'tv';
         return `
-          <div class="netflix-card" data-movie-id="${m.id}" data-media-type="${m.type || 'movie'}" title="${escapeHtml(m.title)}">
+          <div class="nflix-card" data-movie-id="${m.id}" data-media-type="${m.type || 'movie'}" title="${escapeHtml(m.title)}">
             <div class="card-poster" style="background-image: url('${m.poster}');">
               <div class="card-overlay-badges">
                 <span class="badge-n-logo">${isTv ? 'SERIES' : 'N'}</span>
@@ -340,9 +340,9 @@ function renderCategories(categories) {
     }
 
     return `
-      <section id="${rowId}" class="netflix-row">
+      <section id="${rowId}" class="nflix-row">
         <div class="row-header-wrap">
-          <h2 class="netflix-row-title">${cat.title}</h2>
+          <h2 class="nflix-row-title">${cat.title}</h2>
         </div>
         <div class="row-carousel-wrap">
           <button class="carousel-arrow left" onclick="scrollRow('${rowId}-grid', -1)">&#10094;</button>
@@ -930,7 +930,7 @@ function escapeHtml(str) {
 }
 
 // Initial Catalog Load
-loadNetflixCatalog();
+loadNFlixCatalog();
 
 
 // ===================================================

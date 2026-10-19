@@ -26,16 +26,17 @@ const DEFAULT_TRACKERS = [
 /**
  * Fetch available torrent streams for a movie or TV show using open Stremio protocol (Torrentio)
  */
-async function fetchTorrentioStreams(imdbId, type = 'movie', season = 1, episode = 1) {
+async function fetchTorrentioStreams(imdbId, type = 'movie', season = 1, episode = 1, debridKey = process.env.REALDEBRID_API_KEY) {
   return new Promise((resolve) => {
     let cleanImdb = String(imdbId).trim();
     if (!cleanImdb.startsWith('tt')) {
       cleanImdb = 'tt' + cleanImdb;
     }
 
+    const configPrefix = debridKey ? `realdebrid=${debridKey.trim()}/` : '';
     const endpoint = type === 'tv'
-      ? 'https://torrentio.strem.fun/stream/series/' + cleanImdb + ':' + season + ':' + episode + '.json'
-      : 'https://torrentio.strem.fun/stream/movie/' + cleanImdb + '.json';
+      ? `https://torrentio.strem.fun/${configPrefix}stream/series/${cleanImdb}:${season}:${episode}.json`
+      : `https://torrentio.strem.fun/${configPrefix}stream/movie/${cleanImdb}.json`;
 
     https.get(endpoint, { timeout: 8000 }, (res) => {
       let rawData = '';
@@ -105,6 +106,7 @@ async function fetchTorrentioStreams(imdbId, type = 'movie', season = 1, episode
             return {
               id: s.infoHash || ('stream-' + idx),
               infoHash: s.infoHash,
+              url: s.url || null,
               fileIdx: s.fileIdx !== undefined ? s.fileIdx : 0,
               quality,
               audioBadge,

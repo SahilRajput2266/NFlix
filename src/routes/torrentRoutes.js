@@ -8,10 +8,10 @@ const { fetchTorrentioStreams, getOrCreateTorrentEngine } = require('../services
  */
 router.get('/streams/:imdbId', async (req, res) => {
   const { imdbId } = req.params;
-  const { type = 'movie', season = 1, episode = 1 } = req.query;
+  const { type = 'movie', season = 1, episode = 1, debridKey } = req.query;
 
   try {
-    const streams = await fetchTorrentioStreams(imdbId, type, parseInt(season, 10), parseInt(episode, 10));
+    const streams = await fetchTorrentioStreams(imdbId, type, parseInt(season, 10), parseInt(episode, 10), debridKey);
     return res.json({
       success: true,
       count: streams.length,

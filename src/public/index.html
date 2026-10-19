@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Netflix - Watch Movies Online, Stream Blockbusters</title>
+  <title>Nflix - Watch Movies Online, Stream Blockbusters</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="alternate icon" href="/favicon.ico">
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body class="netflix-body">
 
   <!-- Netflix Top Navigation Bar -->
@@ -30,19 +34,27 @@
     <div class="nav-right">
       <div class="search-box-wrap">
         <button class="search-toggle-btn" id="searchToggleBtn" title="Search">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
         </button>
-        <input type="text" id="movieSearchInput" class="search-input" placeholder="Search movies, actors, or IMDb ID..." autocomplete="off">
+        <input type="text" id="movieSearchInput" class="search-input" placeholder="Search movies, actors, or IMDb ID..."
+          autocomplete="off">
         <div id="searchDropdown" class="search-results-dropdown"></div>
       </div>
 
       <div class="nav-icon-btn" title="Notifications">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
       </div>
 
       <div class="netflix-profile" title="Account">
         <div class="profile-avatar">
-          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80" alt="Profile">
+          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80"
+            alt="Profile">
         </div>
       </div>
     </div>
@@ -77,11 +89,17 @@
 
       <div class="hero-actions">
         <button id="heroPlayBtn" class="btn btn-netflix-play">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
           Play
         </button>
         <button id="heroInfoBtn" class="btn btn-netflix-info">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
           More Info
         </button>
       </div>
@@ -90,7 +108,7 @@
 
   <!-- Main Netflix Catalog Rows Container -->
   <main class="netflix-rows-container">
-    
+
     <!-- User Watchlist Section (My List) -->
     <section id="myListSection" class="netflix-row" style="display:none;">
       <div class="row-header-wrap">
@@ -137,29 +155,38 @@
        =================================================== -->
   <div id="movieDetailModal" class="modal-backdrop">
     <div class="movie-detail-dialog">
-      
+
       <!-- Top Backdrop Banner -->
       <div class="detail-hero-banner" id="detailBackdrop">
         <button id="closeDetailBtn" class="btn-circle-close detail-close-btn" title="Close Details">&times;</button>
         <div class="detail-banner-vignette"></div>
-        
+
         <div class="detail-banner-content">
           <div class="detail-badge-tag"><span class="n-red">N</span> FILM</div>
           <h2 id="detailTitle" class="detail-movie-title">Movie Title</h2>
           <div class="detail-tagline" id="detailTagline"></div>
-          
+
           <!-- Primary Actions inside Detail Page: Play, Trailer, and Download! -->
           <div class="detail-actions-row">
             <button id="detailPlayBtn" class="btn btn-netflix-play">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
               Play Now
             </button>
-            <button id="detailTrailerBtn" class="btn btn-netflix-trailer" style="display:none;" title="Watch official trailer">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            <button id="detailTrailerBtn" class="btn btn-netflix-trailer" style="display:none;"
+              title="Watch official trailer">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
               Trailer
             </button>
             <button id="detailDownloadBtn" class="btn btn-netflix-download">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
               Download
             </button>
             <button id="detailAddListBtn" class="btn-circle-action" title="Add to My List">+</button>
@@ -170,7 +197,7 @@
 
       <!-- Detail Body (2-column layout) -->
       <div class="detail-body-container">
-        
+
         <!-- Left Side: Metadata, Story & TV Episodes -->
         <div class="detail-main-info">
           <div class="detail-meta-row">
@@ -189,7 +216,11 @@
           <!-- Interactive Download Drawer -->
           <div id="downloadDrawer" class="download-options-drawer" style="display:none;">
             <div class="drawer-header">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
               <span>Download Movie Mirrors (Offline Playback)</span>
             </div>
             <div class="download-links-list" id="downloadLinksList"></div>
@@ -237,7 +268,7 @@
        =================================================== -->
   <div id="playerModal" class="modal-backdrop">
     <div class="netflix-theater-modal">
-      
+
       <!-- Top Bar of Theater -->
       <div class="theater-topbar">
         <div class="topbar-left">
@@ -260,24 +291,27 @@
           <!-- Dynamic Audio Language Switcher (Hindi, Dual Audio, English, etc.) -->
           <div class="audio-lang-selector-wrap">
             <span class="lang-selector-label">&#128483; Audio:</span>
-            <select id="playerLanguageSelect" class="language-select-dropdown" onchange="switchTorrentLanguage(this.value)">
+            <select id="playerLanguageSelect" class="language-select-dropdown"
+              onchange="switchTorrentLanguage(this.value)">
               <option value="auto">&#10024; Detecting Audio...</option>
             </select>
           </div>
 
           <!-- Stream List Toggle Button -->
-          <button id="toggleStreamsDrawerBtn" class="streams-drawer-btn" onclick="toggleTorrentStreamsDrawer()" title="View all available streams & qualities">
+          <button id="toggleStreamsDrawerBtn" class="streams-drawer-btn" onclick="toggleTorrentStreamsDrawer()"
+            title="View all available streams & qualities">
             &#9889; <span id="streamsBtnLabel">Streams</span>
           </button>
         </div>
 
         <!-- Prominent Dedicated Close Button -->
-        <button id="closePlayerBtn" class="netflix-close-btn" title="Close Video Player" aria-label="Close Video Player">&times;</button>
+        <button id="closePlayerBtn" class="netflix-close-btn" title="Close Video Player"
+          aria-label="Close Video Player">&times;</button>
       </div>
 
       <!-- Video Canvas Container -->
       <div class="theater-canvas-wrap">
-        
+
         <!-- Native Torrent / Stremio Video Player & Swarm HUD -->
         <div id="torrentPlayerContainer" class="torrent-player-container">
           <div class="torrent-swarm-hud">
@@ -293,7 +327,8 @@
           </div>
 
           <!-- Native HTML5 Video Element -->
-          <video id="nativeTorrentVideo" class="native-torrent-video" controls autoplay playsinline controlsList="nodownload"></video>
+          <video id="nativeTorrentVideo" class="native-torrent-video" controls autoplay playsinline
+            controlsList="nodownload"></video>
 
           <!-- Loading / Connecting Overlay -->
           <div id="torrentLoadingOverlay" class="torrent-loading-overlay">
@@ -315,7 +350,8 @@
 
           <div class="drawer-filter-bar">
             <button class="drawer-filter-chip active" onclick="filterTorrentDrawer('all', this)">All Streams</button>
-            <button class="drawer-filter-chip" onclick="filterTorrentDrawer('hindi', this)">&#127470;&#127475; Hindi Dubbed</button>
+            <button class="drawer-filter-chip" onclick="filterTorrentDrawer('hindi', this)">&#127470;&#127475; Hindi
+              Dubbed</button>
             <button class="drawer-filter-chip" onclick="filterTorrentDrawer('dual', this)">&#127911; Dual Audio</button>
             <button class="drawer-filter-chip" onclick="filterTorrentDrawer('1080p', this)">1080p FHD</button>
             <button class="drawer-filter-chip" onclick="filterTorrentDrawer('4k', this)">4K Ultra HD</button>
@@ -354,4 +390,5 @@
 
   <script src="cloudStream.js"></script>
 </body>
+
 </html>

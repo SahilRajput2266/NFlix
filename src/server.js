@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
@@ -50,5 +50,25 @@ app.listen(config.PORT, () => {
   console.log(`Distributed Stream Engine running on http://localhost:${config.PORT}`);
   console.log(`HLS Edge Distributor active at /storage/hls`);
   console.log('==================================================');
+
+  // Keep-Alive Self-Ping Worker for Render / Cloud Free Tiers (Every 10 Minutes)
+  const targetUrl = process.env.SERVER_URL || process.env.RENDER_EXTERNAL_URL;
+  if (targetUrl) {
+    const healthUrl = targetUrl.replace(/\/+$/, '') + '/api/health';
+    const INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
+
+    console.log(`[Keep-Alive] Self-ping active! Target: ${healthUrl} (Interval: 10 mins)`);
+
+    setInterval(async () => {
+      try {
+        const response = await fetch(healthUrl);
+        console.log(`[Keep-Alive] Self-ping status: ${response.status} at ${new Date().toISOString()}`);
+      } catch (err) {
+        console.warn(`[Keep-Alive] Ping error: ${err.message}`);
+      }
+    }, INTERVAL_MS);
+  } else {
+    console.log('[Keep-Alive] Notice: SERVER_URL or RENDER_EXTERNAL_URL not set in .env. Self-ping idle.');
+  }
 });
 
